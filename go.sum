@@ -12,5 +12,7 @@ github.com/mattn/go-tty v0.0.0-20190424173100-523744f04859 h1:smQbSzmT3EHl4EUwtF
 github.com/mattn/go-tty v0.0.0-20190424173100-523744f04859/go.mod h1:XPvLUNfbS4fJH25nqRHfWLMa1ONC8Amw+mIA639KxkE=
 github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 h1:A7GG7zcGjl3jqAqGPmcNjd/D9hzL95SuoOQAaFNdLU0=
 github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942/go.mod h1:eCbImbZ95eXtAUIbLAuAVnBnwf83mjf6QIVH8SHYwqQ=
+github.com/rebel-l/go-utils v0.0.0-20190224202057-d91598d5b48b h1:VZwGsCFDrn4fysCBY0//6uU+Nnk8lQimDq0+FWbDn/g=
+github.com/rebel-l/go-utils v0.0.0-20190224202057-d91598d5b48b/go.mod h1:ExzTGa68C31pf9IKNrAUE+UZsqBlMRfGAwzayjjefrU=
 golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223 h1:DH4skfRX4EBpamg7iV4ZlCpblAHI6s6TDM39bFZumv8=
 golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
