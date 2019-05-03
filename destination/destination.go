@@ -1,27 +1,29 @@
-package workingdir
+package destination
 
 import (
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/rebel-l/go-utils/osutils"
-
 	"github.com/c-bata/go-prompt"
+
+	"github.com/rebel-l/go-utils/osutils"
 )
 
 var dir string
 
+// Get returns the destination path. If Init() was not executed, it returns empty string.
 func Get() string {
 	return dir
 }
 
+// Init initialises the destination path.
 func Init() error {
 	if err := detect(); err != nil {
 		return setDir()
 	}
 
-	print()
+	printPath()
 	c := confirmation()
 	if c {
 		return nil
@@ -36,8 +38,8 @@ func detect() error {
 	return err
 }
 
-func print() {
-	fmt.Printf("The current directory is %s\n", dir)
+func printPath() {
+	fmt.Printf("The destination path is %s\n", dir)
 }
 
 func confirmation() bool {
