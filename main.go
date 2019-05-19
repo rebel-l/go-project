@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/rebel-l/go-project/git"
+
 	"github.com/rebel-l/go-project/kind"
 
 	"github.com/fatih/color"
@@ -26,6 +28,9 @@ func main() {
 
 	// project kind
 	kind.Init()
+
+	// git setup
+	git.Setup(destination.Get())
 }
 
 func printError(msg string, err error) {
