@@ -80,7 +80,12 @@ func createRemote() error {
 		return err
 	}
 
-	return repo.Fetch(&git.FetchOptions{RemoteName: remoteName})
+	workingTree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	return workingTree.Pull(&git.PullOptions{RemoteName: remoteName})
 }
 
 func askForRemote() string {
