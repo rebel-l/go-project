@@ -10,9 +10,13 @@ import (
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-const remoteName = "origin"
+const (
+	developBranch = "refs/heads/develop"
+	remoteName    = "origin"
+)
 
 var repo *git.Repository
 var errMsg = color.New(color.FgRed, color.Italic)
@@ -33,11 +37,39 @@ func Setup(projectPath string) {
 	}
 
 	if !ok {
-		if err = createRemote(); err != nil {
-			_, _ = errMsg.Printf("Failed to set remote origin on repo: %s\n", err)
-			return
-		}
+		// TODO: do as last step together with push
+		//if err = createRemote(); err != nil {
+		//	_, _ = errMsg.Printf("Failed to set remote origin on repo: %s\n", err)
+		//	return
+		//}
 	}
+
+	//if err = createBranch(); err != nil {
+	//	_, _ = errMsg.Printf("Failed to set branch on repo: %s\n", err)
+	//	return
+	//}
+
+	//if err = checkoutBranch(); err != nil {
+	//	_, _ = errMsg.Printf("Failed to create and checkout branch on repo: %s\n", err)
+	//	return
+	//}
+
+	//list, err := repo.Branches()
+	//if err != nil {
+	//	_, _ = errMsg.Printf("Failed to retrieve branches: %s\n", err)
+	//}
+	//defer list.Close()
+	//err = list.ForEach(func(reference *plumbing.Reference) error {
+	//	fmt.Println(reference.String())
+	//	fmt.Println(reference.Name())
+	//	fmt.Println(reference.Type())
+	//	fmt.Println(reference.Hash())
+	//	return nil
+	//})
+	//if err != nil {
+	//	_, _ = errMsg.Printf("Failed to iterate branches: %s\n", err)
+	//}
+	//fmt.Println("TEST")
 }
 
 func open(path string) bool {
@@ -94,4 +126,27 @@ func askForRemote() string {
 	})
 
 	return strings.TrimSpace(strings.ToLower(t))
+}
+
+func createBranch() error {
+	head, err := repo.Head()
+	if err != nil {
+		return err
+	}
+
+	ref := plumbing.NewHashReference(developBranch, head.Hash())
+
+	return repo.Storer.SetReference(ref)
+}
+
+func checkoutBranch() error {
+	workingTree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	return workingTree.Checkout(&git.CheckoutOptions{
+		Branch: developBranch,
+		Create: true,
+	})
 }
