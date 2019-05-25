@@ -34,7 +34,7 @@ func main() {
 	git.Setup(destination.Get())
 
 	// license
-	if err := license.Init(destination.Get()); err != nil {
+	if err := license.Init(destination.Get(), git.GetAuthor().Name, git.AddFilesAndCommit); err != nil {
 		print.Error("Init license failed", err)
 		return
 	}

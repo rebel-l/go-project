@@ -31,7 +31,7 @@ func Get() string {
 }
 
 // Init let the user select the license and creates license file
-func Init(path string) error {
+func Init(path string, author string, commit func(files []string, msg string) error) error {
 	filename := filepath.Join(path, "LICENSE")
 	if osutils.FileOrPathExists(filename) {
 		print.Info("Skip creating a license file as it already exists")
@@ -57,7 +57,12 @@ func Init(path string) error {
 		return nil
 	}
 
-	return createLicense(filename)
+	err := createLicense(filename, newParameters(author))
+	if err != nil {
+		return err
+	}
+
+	return commit([]string{"LICENSE"}, "added license")
 }
 
 func getPossibleLicenses() option.Options {
@@ -86,7 +91,7 @@ func askUser() string {
 	return strings.ToLower(t)
 }
 
-func createLicense(filename string) error {
+func createLicense(filename string, params parameters) error {
 	pattern := filepath.Join("./license/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -101,7 +106,7 @@ func createLicense(filename string) error {
 		_ = file.Close()
 	}()
 
-	return tmpl.ExecuteTemplate(file, value, newParameters())
+	return tmpl.ExecuteTemplate(file, value, params)
 }
 
 type parameters struct {
@@ -109,11 +114,11 @@ type parameters struct {
 	Author string
 }
 
-func newParameters() parameters {
+func newParameters(author string) parameters {
 	return parameters{
 		Year:   time.Now().Year(),
-		Author: "Lars Gaubisch", // TODO: needs to initialised by user, maybe from GIT?
+		Author: author,
 	}
 }
 
-// TODO: get license prefix for source code
+// TODO: get license prefix for source code: GPLv3
