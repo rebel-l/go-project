@@ -2,7 +2,11 @@ package license
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/c-bata/go-prompt"
 
@@ -27,7 +31,7 @@ func Get() string {
 }
 
 // Init let the user select the license and creates license file
-func Init() {
+func Init(path string) error {
 	fmt.Println("Under which license should this project be published?")
 	licenses := getPossibleLicenses()
 	options.Print(licenses)
@@ -43,6 +47,12 @@ func Init() {
 			_, _ = errMsg.Printf("License %s is not valid, please enter again\n", answer)
 		}
 	}
+
+	if value == strings.ToLower(licenseNone) {
+		return nil
+	}
+
+	return createLicense(path)
 }
 
 func getPossibleLicenses() option.Options {
@@ -69,4 +79,34 @@ func askUser() string {
 	})
 
 	return strings.ToLower(t)
+}
+
+func createLicense(path string) error {
+	pattern := filepath.Join("./license/tmpl", "*.tmpl")
+	tmpl, err := template.ParseGlob(pattern)
+	if err != nil {
+		return fmt.Errorf("failed to load templates: %s", err)
+	}
+
+	file, err := os.Create(filepath.Join(path, "LICENSE"))
+	if err != nil {
+		return fmt.Errorf("failed to create license file: %s", err)
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	return tmpl.ExecuteTemplate(file, value, newParameters())
+}
+
+type parameters struct {
+	Year   int
+	Author string
+}
+
+func newParameters() parameters {
+	return parameters{
+		Year:   time.Now().Year(),
+		Author: "Lars Gaubisch", // TODO: needs to initialised by user
+	}
 }

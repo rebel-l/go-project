@@ -36,10 +36,14 @@ func main() {
 	git.Setup(destination.Get())
 
 	// license
-	license.Init()
+	if err := license.Init(destination.Get()); err != nil {
+		printError("Init license failed", err)
+		return
+	}
+	fmt.Println()
 }
 
 func printError(msg string, err error) {
 	errMsg := color.New(color.FgRed, color.Italic)
-	_, _ = errMsg.Printf(msg+": %s\n", err)
+	_, _ = errMsg.Printf(msg+": %s\n\n", err)
 }
