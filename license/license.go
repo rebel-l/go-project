@@ -10,10 +10,10 @@ import (
 
 	"github.com/c-bata/go-prompt"
 
-	"github.com/fatih/color"
-
 	"github.com/rebel-l/go-project/lib/options"
+	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-utils/option"
+	"github.com/rebel-l/go-utils/osutils"
 )
 
 const (
@@ -32,6 +32,12 @@ func Get() string {
 
 // Init let the user select the license and creates license file
 func Init(path string) error {
+	filename := filepath.Join(path, "LICENSE")
+	if osutils.FileOrPathExists(filename) {
+		print.Info("Skip creating a license file as it already exists")
+		return nil
+	}
+
 	fmt.Println("Under which license should this project be published?")
 	licenses := getPossibleLicenses()
 	options.Print(licenses)
@@ -43,8 +49,7 @@ func Init(path string) error {
 		if valid {
 			value = answer
 		} else {
-			errMsg := color.New(color.FgRed, color.Italic)
-			_, _ = errMsg.Printf("License %s is not valid, please enter again\n", answer)
+			print.Error(fmt.Sprintf("License %s is not valid, please enter again\n", answer))
 		}
 	}
 
@@ -52,7 +57,7 @@ func Init(path string) error {
 		return nil
 	}
 
-	return createLicense(path)
+	return createLicense(filename)
 }
 
 func getPossibleLicenses() option.Options {
@@ -81,14 +86,14 @@ func askUser() string {
 	return strings.ToLower(t)
 }
 
-func createLicense(path string) error {
+func createLicense(filename string) error {
 	pattern := filepath.Join("./license/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
 		return fmt.Errorf("failed to load templates: %s", err)
 	}
 
-	file, err := os.Create(filepath.Join(path, "LICENSE"))
+	file, err := os.Create(filename)
 	if err != nil {
 		return fmt.Errorf("failed to create license file: %s", err)
 	}
@@ -107,6 +112,8 @@ type parameters struct {
 func newParameters() parameters {
 	return parameters{
 		Year:   time.Now().Year(),
-		Author: "Lars Gaubisch", // TODO: needs to initialised by user
+		Author: "Lars Gaubisch", // TODO: needs to initialised by user, maybe from GIT?
 	}
 }
+
+// TODO: get license prefix for source code

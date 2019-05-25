@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/rebel-l/go-project/lib/options"
-
-	"github.com/fatih/color"
-
 	"github.com/c-bata/go-prompt"
+
+	"github.com/rebel-l/go-project/lib/options"
+	"github.com/rebel-l/go-project/lib/print"
 )
 
 var value string
@@ -36,8 +35,7 @@ func Init() {
 		if valid {
 			value = answer
 		} else {
-			errMsg := color.New(color.FgRed, color.Italic)
-			_, _ = errMsg.Printf("Project type %s is not valid, please enter again\n", answer)
+			print.Error(fmt.Sprintf("Project type %s is not valid, please enter again\n", answer))
 		}
 	}
 }

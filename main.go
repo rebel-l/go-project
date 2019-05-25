@@ -3,15 +3,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/rebel-l/go-project/license"
-
-	"github.com/rebel-l/go-project/git"
-
-	"github.com/rebel-l/go-project/kind"
-
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-project/destination"
+	"github.com/rebel-l/go-project/git"
+	"github.com/rebel-l/go-project/kind"
+	"github.com/rebel-l/go-project/lib/print"
+	"github.com/rebel-l/go-project/license"
 )
 
 func main() {
@@ -23,7 +21,7 @@ func main() {
 
 	// destination path
 	if err := destination.Init(); err != nil {
-		printError("Init destination path failed", err)
+		print.Error("Init destination path failed", err)
 		return
 	}
 	fmt.Println()
@@ -37,13 +35,8 @@ func main() {
 
 	// license
 	if err := license.Init(destination.Get()); err != nil {
-		printError("Init license failed", err)
+		print.Error("Init license failed", err)
 		return
 	}
 	fmt.Println()
-}
-
-func printError(msg string, err error) {
-	errMsg := color.New(color.FgRed, color.Italic)
-	_, _ = errMsg.Printf(msg+": %s\n\n", err)
 }
