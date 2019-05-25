@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/rebel-l/go-project/license"
+
 	"github.com/rebel-l/go-project/git"
 
 	"github.com/rebel-l/go-project/kind"
@@ -28,9 +30,13 @@ func main() {
 
 	// project kind
 	kind.Init()
+	fmt.Println()
 
 	// git setup
 	git.Setup(destination.Get())
+
+	// license
+	license.Init()
 }
 
 func printError(msg string, err error) {

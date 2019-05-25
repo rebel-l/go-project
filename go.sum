@@ -40,6 +40,8 @@ github.com/rebel-l/go-utils v0.0.0-20190525113256-d3effff8f243 h1:5bR+8pb2AR2lmt
 github.com/rebel-l/go-utils v0.0.0-20190525113256-d3effff8f243/go.mod h1:ExzTGa68C31pf9IKNrAUE+UZsqBlMRfGAwzayjjefrU=
 github.com/rebel-l/go-utils v0.0.0-20190525125002-74d2d86ba3f3 h1:4GhiyKdj1v7z8uMXtqw9ZwZELGMGEoW3vVC45af4FA4=
 github.com/rebel-l/go-utils v0.0.0-20190525125002-74d2d86ba3f3/go.mod h1:ExzTGa68C31pf9IKNrAUE+UZsqBlMRfGAwzayjjefrU=
+github.com/rebel-l/go-utils v0.0.0-20190525141611-a9607abf56dc h1:EArlSYifj4OolbdQj7uwyDJftEGaec0PkYkRhx58/pM=
+github.com/rebel-l/go-utils v0.0.0-20190525141611-a9607abf56dc/go.mod h1:ExzTGa68C31pf9IKNrAUE+UZsqBlMRfGAwzayjjefrU=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
 github.com/src-d/gcfg v1.4.0 h1:xXbNR5AlLSA315x2UO+fTSSAXCDf+Ar38/6oyGbDKQ4=
