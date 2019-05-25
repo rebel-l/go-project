@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rebel-l/go-project/lib/options"
+
 	"github.com/fatih/color"
 
 	"github.com/c-bata/go-prompt"
@@ -12,8 +14,8 @@ import (
 var value string
 
 const (
-	kindApplication = "application"
-	kindPackage     = "package"
+	kindService = "service"
+	kindPackage = "package"
 )
 
 // Get returns the kind of the project. If Init() was not called before it returns an empty string.
@@ -24,14 +26,13 @@ func Get() string {
 // Init request the kind of project from user.
 func Init() {
 	fmt.Println("Which type of project do you have?")
-	for _, v := range possibleKinds() {
-		fmt.Printf("%s: %s\n", v.kind, v.description)
-	}
+	kinds := possibleKinds()
+	options.Print(kinds)
 
 	valid := false
 	for !valid {
 		answer := askUser()
-		valid = validate(answer)
+		valid = kinds.IsValidOption(answer)
 		if valid {
 			value = answer
 		} else {
@@ -43,24 +44,9 @@ func Init() {
 
 func askUser() string {
 	t := prompt.Input("Enter the project type: ", func(d prompt.Document) []prompt.Suggest {
-		s := possibleKinds().getSuggestions()
+		s := options.GetSuggestions(possibleKinds())
 		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 	})
 
 	return strings.ToLower(t)
-}
-
-type kind struct {
-	kind        string
-	description string
-}
-
-func validate(kind string) bool {
-	for _, v := range possibleKinds() {
-		if kind == v.kind {
-			return true
-		}
-	}
-
-	return false
 }

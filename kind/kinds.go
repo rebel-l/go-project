@@ -3,31 +3,18 @@ package kind
 import (
 	"fmt"
 
-	"github.com/c-bata/go-prompt"
+	"github.com/rebel-l/go-utils/option"
 )
 
-type kinds []kind
-
-func (k kinds) getSuggestions() []prompt.Suggest {
-	s := make([]prompt.Suggest, len(k))
-	for i, v := range k {
-		s[i] = prompt.Suggest{
-			Text:        v.kind,
-			Description: v.description,
-		}
-	}
-	return s
-}
-
-func possibleKinds() kinds {
-	return kinds{
+func possibleKinds() option.Options {
+	return option.Options{
 		{
-			kind:        kindApplication,
-			description: fmt.Sprintf("creates a project of type %s", kindApplication),
+			Key:         kindService,
+			Description: fmt.Sprintf("creates a project of type %s", kindService),
 		},
 		{
-			kind:        kindPackage,
-			description: fmt.Sprintf("creates a project of type %s", kindPackage),
+			Key:         kindPackage,
+			Description: fmt.Sprintf("creates a project of type %s", kindPackage),
 		},
 	}
 }
