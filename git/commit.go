@@ -20,7 +20,6 @@ func AddFilesAndCommit(files []string, msg string) error {
 
 	for _, file := range files {
 		file = strings.Trim(strings.Replace(file, rootPath, "", -1), "/\\")
-		fmt.Println(file)
 		_, err := workTree.Add(file)
 		if err != nil {
 			return err

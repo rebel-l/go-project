@@ -53,4 +53,13 @@ func main() {
 		// TODO: add not to execute ./scripts/tool/setup.sh (windows GitBsh)
 		return
 	}
+
+	// finish
+	print.Info("... Go-Project Tool finished successful!\n")
+	print.Warning(
+		fmt.Sprintf(
+			"Please switch to your project %s and execute './scripts/tools/setup.sh' to install the global tools (Windows users can use GitBash)\n",
+			destination.Get(),
+		),
+	)
 }
