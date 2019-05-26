@@ -10,6 +10,7 @@ import (
 	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-project/license"
+	"github.com/rebel-l/go-project/scripts"
 )
 
 func main() {
@@ -46,4 +47,9 @@ func main() {
 		return
 	}
 
+	// scripts
+	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
+		print.Error("Create scripts failed", err)
+		return
+	}
 }

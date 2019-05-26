@@ -17,6 +17,9 @@ const (
 	IgnoreEmptyFolder = "empty_folder"
 )
 
+// CallbackCreateIgnore defines the callback to create ignore files
+type CallbackCreateIgnore func(path, ignoreType, commitMsg string) error
+
 // CreateIgnore create an git ignore file on the given path and ignore type
 func CreateIgnore(path, ignoreType, commitMsg string) error {
 	if !osutils.FileOrPathExists(path) {

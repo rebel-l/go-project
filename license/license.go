@@ -8,6 +8,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/rebel-l/go-project/git"
+
 	"github.com/c-bata/go-prompt"
 
 	"github.com/rebel-l/go-project/lib/options"
@@ -31,7 +33,7 @@ func Get() string {
 }
 
 // Init let the user select the license and creates license file
-func Init(path string, author string, commit func(files []string, msg string) error) error {
+func Init(path string, author string, commit git.CallbackAddAndCommit) error {
 	filename := filepath.Join(path, "LICENSE")
 	if osutils.FileOrPathExists(filename) {
 		print.Info("Skip creating a license file as it already exists")

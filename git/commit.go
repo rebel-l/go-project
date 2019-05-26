@@ -8,6 +8,9 @@ import (
 	"gopkg.in/src-d/go-git.v4"
 )
 
+// CallbackAddAndCommit defines the callback to add and commit files
+type CallbackAddAndCommit func(files []string, msg string) error
+
 // AddFilesAndCommit adds files to repository and commits them. Cannot be uses until Setup() is executed
 func AddFilesAndCommit(files []string, msg string) error {
 	workTree, err := repo.Worktree()
