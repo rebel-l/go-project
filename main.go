@@ -10,6 +10,7 @@ import (
 	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-project/license"
+	"github.com/rebel-l/go-project/metalinter"
 	"github.com/rebel-l/go-project/scripts"
 	"github.com/rebel-l/go-project/travisci"
 )
@@ -46,6 +47,11 @@ func main() {
 	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
 		print.Error("Create main gitignore failed", err)
 		return
+	}
+
+	// metalinter
+	if err := metalinter.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+		print.Error("Create metalinter config failed", err)
 	}
 
 	// travis ci
