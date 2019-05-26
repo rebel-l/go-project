@@ -11,6 +11,7 @@ import (
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-project/license"
 	"github.com/rebel-l/go-project/scripts"
+	"github.com/rebel-l/go-project/travisci"
 )
 
 func main() {
@@ -47,10 +48,14 @@ func main() {
 		return
 	}
 
+	// travis ci
+	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+		print.Error("Create travis file failed", err)
+	}
+
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
 		print.Error("Create scripts failed", err)
-		// TODO: add not to execute ./scripts/tool/setup.sh (windows GitBsh)
 		return
 	}
 
