@@ -89,7 +89,10 @@ func (s script) getFilenameWithPath(rootPath string) string {
 }
 
 func (s script) getFilename() string {
-	return strings.Join([]string{s.name, s.suffix}, ".")
+	if s.suffix == "" {
+		return s.name
+	}
+	return fmt.Sprintf("%s.%s", s.name, s.suffix)
 }
 
 func (s script) getTemplateName() string {

@@ -49,7 +49,7 @@ func CreateIgnore(path, ignoreType, commitMsg string) error {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 
-	return AddFilesAndCommit([]string{".gitignore"}, commitMsg)
+	return AddFilesAndCommit([]string{filename}, commitMsg)
 }
 
 func getPossibleIgnoreTypes() option.Options {
