@@ -39,4 +39,11 @@ func main() {
 		return
 	}
 	fmt.Println()
+
+	// main gitignore
+	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
+		print.Error("Create main gitignore failed", err)
+		return
+	}
+
 }
