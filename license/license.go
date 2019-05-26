@@ -62,7 +62,7 @@ func Init(path string, author string, commit func(files []string, msg string) er
 		return err
 	}
 
-	return commit([]string{"LICENSE"}, "added license")
+	return commit([]string{filename}, "added license")
 }
 
 func getPossibleLicenses() option.Options {

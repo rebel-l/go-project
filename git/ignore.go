@@ -2,20 +2,22 @@ package git
 
 import (
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
-
-	"github.com/rebel-l/go-utils/osutils"
+	"text/template"
 
 	"github.com/rebel-l/go-utils/option"
+	"github.com/rebel-l/go-utils/osutils"
 )
 
 const (
-	IgnoreMain        = "main"
+	// IgnoreMain represents the ignore type for main
+	IgnoreMain = "main"
+	// IgnoreEmptyFolder represents the ignore type for empty folder
 	IgnoreEmptyFolder = "empty_folder"
 )
 
+// CreateIgnore create an git ignore file on the given path and ignore type
 func CreateIgnore(path, ignoreType, commitMsg string) error {
 	if !osutils.FileOrPathExists(path) {
 		return fmt.Errorf("path %s doesn't exist", path)
