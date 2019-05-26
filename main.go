@@ -50,6 +50,7 @@ func main() {
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
 		print.Error("Create scripts failed", err)
+		// TODO: add not to execute ./scripts/tool/setup.sh (windows GitBsh)
 		return
 	}
 }

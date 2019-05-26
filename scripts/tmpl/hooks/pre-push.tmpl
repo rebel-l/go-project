@@ -1,0 +1,4 @@
+{{define "hooks.pre-push"}}#!/bin/sh
+
+./scripts/tools/runChecks.sh -crs
+{{end}}
