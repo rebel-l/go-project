@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/rebel-l/go-project/readme"
+
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-project/destination"
@@ -52,12 +54,32 @@ func main() {
 	// metalinter
 	if err := metalinter.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create metalinter config failed", err)
+		return
 	}
 
 	// travis ci
 	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create travis file failed", err)
+		return
 	}
+
+	// readme
+	if err := readme.Init(destination.Get(), git.GetRemote(), git.AddFilesAndCommit); err != nil {
+		print.Error("Create readme failed", err)
+		return
+	}
+
+	// go mod
+	// TODO
+
+	// vagrant for docker
+	// TODO
+
+	// docker
+	// TODO
+
+	// code
+	// TODO: package & service
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {

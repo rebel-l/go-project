@@ -11,7 +11,6 @@ import (
 	"github.com/rebel-l/go-utils/osutils"
 
 	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
@@ -23,10 +22,16 @@ var repo *git.Repository
 var author *object.Signature
 var errMsg = color.New(color.FgRed, color.Italic)
 var rootPath string
+var remote string
 
 // GetAuthor returns the author entered by user. Is nil as long Setup() not called
 func GetAuthor() *object.Signature {
 	return author
+}
+
+// GetRemote returns the remote url to git repository
+func GetRemote() string {
+	return remote
 }
 
 // Setup ensures that git repo is created and remote origin is set
@@ -49,10 +54,10 @@ func Setup(projectPath string) {
 
 	if !ok {
 		// TODO: do as last step together with push
-		//if err = createRemote(); err != nil {
-		//	_, _ = errMsg.Printf("Failed to set remote origin on repo: %s\n", err)
-		//	return
-		//}
+		if err = createRemote(); err != nil {
+			_, _ = errMsg.Printf("Failed to set remote origin on repo: %s\n", err)
+			return
+		}
 	}
 
 	//if err = createBranch(); err != nil {
@@ -113,22 +118,23 @@ func hasRemote() (bool, error) {
 }
 
 func createRemote() error {
-	remote := askForRemote()
+	remote = askForRemote()
 	if remote == "" {
 		return nil
 	}
+	return nil // TODO: remove as soon as set of remote origin is fixed
 
-	_, err := repo.CreateRemote(&config.RemoteConfig{Name: git.DefaultRemoteName, URLs: []string{remote}})
-	if err != nil {
-		return err
-	}
-
-	workingTree, err := repo.Worktree()
-	if err != nil {
-		return err
-	}
-
-	return workingTree.Pull(&git.PullOptions{RemoteName: git.DefaultRemoteName})
+	//_, err := repo.CreateRemote(&config.RemoteConfig{Name: git.DefaultRemoteName, URLs: []string{remote}})
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//workingTree, err := repo.Worktree()
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//return workingTree.Pull(&git.PullOptions{RemoteName: git.DefaultRemoteName})
 }
 
 func askForRemote() string {
