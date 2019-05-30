@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/rebel-l/go-project/git"
@@ -26,10 +27,44 @@ func Init(projectPath string, repository string, commit git.CallbackAddAndCommit
 		_ = file.Close()
 	}()
 
-	// TODO: collect parameters
-
-	if err = tmpl.ExecuteTemplate(file, "readme", nil); err != nil {
+	if err = tmpl.ExecuteTemplate(file, "readme", extractParams(repository)); err != nil {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 	return commit([]string{filename}, "added readme")
+}
+
+type parameters struct {
+	Project     string
+	GitDomain   string
+	GitUsername string
+}
+
+func (p parameters) GetGitCompany() string {
+	return strings.Split(p.GitDomain, ".")[0]
+}
+
+func extractParams(repository string) parameters {
+	/*
+		Example strings to split:
+			https://github.com/rebel-l/auth-service.git
+			git@github.com:rebel-l/auth-service.git
+	*/
+	params := parameters{}
+	repository = strings.ToLower(repository)
+	pieces := strings.Split(repository, "/")
+	params.Project = strings.Replace(pieces[len(pieces)-1], ".git", "", -1)
+
+	switch len(pieces) {
+	case 2:
+		sub := strings.Split(pieces[0], ":")
+		if len(sub) == 2 {
+			params.GitDomain = strings.Replace(sub[0], "git@", "", -1)
+			params.GitUsername = sub[1]
+		}
+	case 4:
+		params.GitUsername = pieces[2]
+		params.GitDomain = pieces[1]
+	}
+
+	return params
 }
