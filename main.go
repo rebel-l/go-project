@@ -64,7 +64,7 @@ func main() {
 	}
 
 	// readme
-	if err := readme.Init(destination.Get(), git.GetRemote(), git.AddFilesAndCommit); err != nil {
+	if err := readme.Init(destination.Get(), git.GetRemote(), license.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}

@@ -1,9 +1,11 @@
 {{define "readme"}}[![Build Status](https://travis-ci.org/{{.GitUsername}}/{{.Project}}.svg?branch=master)](https://travis-ci.org/{{.GitUsername}}/{{.Project}})
 [![codecov](https://codecov.io/gh/{{.GitUsername}}/{{.Project}}/branch/master/graph/badge.svg)](https://codecov.io/gh/{{.GitUsername}}/{{.Project}})
 [![Go Report Card](https://goreportcard.com/badge/{{.GitDomain}}/{{.GitUsername}}/{{.Project}})](https://goreportcard.com/report/{{.GitDomain}}/{{.GitUsername}}/{{.Project}})
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+{{if (eq .License "gplv3")}}[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+{{else if (eq .License "mit")}}[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+{{else if (eq .License "none")}}![License: NONE](https://img.shields.io/badge/license-NONE-red.svg){{end}}
 
-[![Release](https://img.shields.io/{{.GetGitCompany}}/{{.GitUsername}}/{{.Project}}.svg?label=Release)](https://{{.GitDomain}}/{{.GitUsername}}/{{.Project}}/releases)
+[![Release](https://img.shields.io/{{.GetGitCompany}}/release/{{.GitUsername}}/{{.Project}}.svg?label=Release)](https://{{.GitDomain}}/{{.GitUsername}}/{{.Project}}/releases)
 [![GitHub issues](https://img.shields.io/{{.GetGitCompany}}/issues/{{.GitUsername}}/{{.Project}}.svg)](https://{{.GitDomain}}/{{.GitUsername}}/{{.Project}}/issues)
 [![Documentation](https://godoc.org/{{.GitDomain}}/{{.GitUsername}}/{{.Project}}?status.svg)](https://godoc.org/{{.GitDomain}}/{{.GitUsername}}/{{.Project}})
 
