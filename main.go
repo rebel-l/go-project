@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 
-	"github.com/rebel-l/go-project/readme"
-
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-project/destination"
 	"github.com/rebel-l/go-project/git"
+	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/kind"
+	"github.com/rebel-l/go-project/lib/config"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-project/license"
 	"github.com/rebel-l/go-project/metalinter"
+	"github.com/rebel-l/go-project/readme"
 	"github.com/rebel-l/go-project/scripts"
 	"github.com/rebel-l/go-project/travisci"
 )
@@ -43,6 +44,7 @@ func main() {
 		print.Error("Init license failed", err)
 		return
 	}
+	cfg := config.New(git.GetRemote(), license.Get())
 	fmt.Println()
 
 	// main gitignore
@@ -64,13 +66,16 @@ func main() {
 	}
 
 	// readme
-	if err := readme.Init(destination.Get(), git.GetRemote(), license.Get(), git.AddFilesAndCommit); err != nil {
+	if err := readme.Init(destination.Get(), cfg, git.AddFilesAndCommit); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
 
 	// go mod
-	// TODO
+	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit); err != nil {
+		print.Error("Create go mod failed", err)
+		return
+	}
 
 	// vagrant for docker
 	// TODO
@@ -79,7 +84,7 @@ func main() {
 	// TODO
 
 	// code
-	// TODO: package & service
+	// TODO: package & service, inject project type, go mod get, git add files and commit
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
