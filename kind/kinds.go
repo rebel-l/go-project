@@ -9,12 +9,12 @@ import (
 func possibleKinds() option.Options {
 	return option.Options{
 		{
-			Key:         kindService,
-			Description: fmt.Sprintf("creates a project of type %s", kindService),
+			Key:         Service,
+			Description: fmt.Sprintf("creates a project of type %s", Service),
 		},
 		{
-			Key:         kindPackage,
-			Description: fmt.Sprintf("creates a project of type %s", kindPackage),
+			Key:         Package,
+			Description: fmt.Sprintf("creates a project of type %s", Package),
 		},
 	}
 }

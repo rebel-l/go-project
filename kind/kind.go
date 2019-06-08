@@ -13,8 +13,10 @@ import (
 var value string
 
 const (
-	kindService = "service"
-	kindPackage = "package"
+	// Service is the identifier for the kind: service
+	Service = "service"
+	// Package is the identifier for the kind: package
+	Package = "package"
 )
 
 // Get returns the kind of the project. If Init() was not called before it returns an empty string.

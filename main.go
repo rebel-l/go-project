@@ -5,6 +5,7 @@ import (
 
 	"github.com/fatih/color"
 
+	"github.com/rebel-l/go-project/code"
 	"github.com/rebel-l/go-project/destination"
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
@@ -84,7 +85,11 @@ func main() {
 	// TODO
 
 	// code
-	// TODO: package & service, inject project type, go mod get, git add files and commit
+	if err := code.Init(kind.Get(), destination.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
+		print.Error("Creating code base failed", err)
+		return
+	}
+	// TODO: package & service, inject license prefix
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
@@ -101,3 +106,11 @@ func main() {
 		),
 	)
 }
+
+/*
+other TODO:
+1. Add license: GPL3
+2. Add license Prefix to all files
+3. Add ReadMe
+4. exit with proper Exit Codes
+*/
