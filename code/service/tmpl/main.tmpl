@@ -1,0 +1,15 @@
+{{define "main"}}{{if .LicensePrefix}}/*
+{{.LicensePrefix}}
+*/
+
+{{end}}// Package main TODO: description of package
+package main
+{{if .Packages}}
+import (
+    {{range $val := .Packages}}"{{$val}}"{{end}}
+){{end}}
+
+func main() {
+    // TODO: add your code here
+}
+{{end}}

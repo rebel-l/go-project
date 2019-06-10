@@ -12,6 +12,7 @@ import (
 var goGetCallback golang.CallbackGoGet
 var commitCallback git.CallbackAddAndCommit
 
+// Init creates the code base files.
 func Init(projectKind string, projectPath string, cfg config.Config, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
 	goGetCallback = goGet
 	commitCallback = commit
@@ -25,6 +26,8 @@ func Init(projectKind string, projectPath string, cfg config.Config, goGet golan
 	case kind.Service:
 		packages = service.GetPackages()
 		files = append(files, "go.sum")
+		params := service.NewParameters(cfg)
+		err = service.Create(projectPath, params, commit)
 	}
 
 	if err != nil {

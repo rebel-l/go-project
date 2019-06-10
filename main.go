@@ -3,11 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/rebel-l/go-project/description"
-
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-project/code"
+	"github.com/rebel-l/go-project/description"
 	"github.com/rebel-l/go-project/destination"
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
@@ -112,5 +111,7 @@ func main() {
 }
 
 /*
-other TODO: exit with proper Exit Codes
+other TODO:
+1. exit with proper Exit Codes
+2. run gofmt on all created go files
 */
