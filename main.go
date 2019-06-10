@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/rebel-l/go-project/description"
+
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-project/code"
@@ -33,19 +35,21 @@ func main() {
 	}
 	fmt.Println()
 
-	// project kind
+	// project kind & description
 	kind.Init()
+	fmt.Println()
+	description.Init()
 	fmt.Println()
 
 	// git setup
 	git.Setup(destination.Get())
 
 	// license
-	if err := license.Init(destination.Get(), git.GetAuthor().Name, git.AddFilesAndCommit); err != nil {
+	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Init license failed", err)
 		return
 	}
-	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix())
+	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get())
 	fmt.Println()
 
 	// main gitignore
@@ -89,7 +93,7 @@ func main() {
 		print.Error("Creating code base failed", err)
 		return
 	}
-	// TODO: package & service, inject license prefix & description
+	// TODO: service
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
@@ -108,9 +112,5 @@ func main() {
 }
 
 /*
-other TODO:
-1. Add license: GPL3
-2. Add license Prefix to all files
-3. Add ReadMe
-4. exit with proper Exit Codes
+other TODO: exit with proper Exit Codes
 */

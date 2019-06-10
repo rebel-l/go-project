@@ -12,6 +12,7 @@ type Config struct {
 	GitUsername   string
 	License       string
 	LicensePrefix string
+	Description   string
 }
 
 // GetGitCompany returns the GitDomain without top level domain
@@ -25,13 +26,13 @@ func (c Config) GetPackage() string {
 }
 
 // New returns a new config extracted the repository and license
-func New(repository string, license string, licensePrefix string) Config {
+func New(repository, license, licensePrefix, description string) Config {
 	/*
 		Example strings to split:
 			https://github.com/rebel-l/auth-service.git
 			git@github.com:rebel-l/auth-service.git
 	*/
-	params := Config{License: license, LicensePrefix: licensePrefix}
+	params := Config{License: license, LicensePrefix: licensePrefix, Description: description}
 	repository = strings.ToLower(repository)
 	pieces := strings.Split(repository, "/")
 	params.Project = strings.Replace(pieces[len(pieces)-1], ".git", "", -1)

@@ -40,7 +40,7 @@ func GetPrefix() string {
 }
 
 // Init let the user select the license and creates license file
-func Init(path string, author string, commit git.CallbackAddAndCommit) error {
+func Init(path string, author string, projectDescription string, commit git.CallbackAddAndCommit) error {
 	filename := filepath.Join(path, "LICENSE")
 	if osutils.FileOrPathExists(filename) {
 		print.Info("Skip creating a license file as it already exists")
@@ -66,7 +66,7 @@ func Init(path string, author string, commit git.CallbackAddAndCommit) error {
 		return nil
 	}
 
-	err := createLicense(filename, newParameters(author))
+	err := createLicense(filename, newParameters(author, projectDescription))
 	if err != nil {
 		return err
 	}
@@ -120,22 +120,22 @@ func createLicense(filename string, params parameters) error {
 	}
 
 	var buf bytes.Buffer
-	if err = tmpl.ExecuteTemplate(&buf, fmt.Sprintf("%s_prefix", value), params); err == nil {
+	if err = tmpl.ExecuteTemplate(&buf, fmt.Sprintf("%s_prefix", value), params); err == nil { // TODO: do also error handling in a proper way. Ignore only error that template was not found, as this is expected
 		prefix = buf.String()
 	}
 	return nil
 }
 
 type parameters struct {
-	Year   int
-	Author string
+	Year               int
+	Author             string
+	ProjectDescription string
 }
 
-func newParameters(author string) parameters {
+func newParameters(author, projectDescription string) parameters {
 	return parameters{
-		Year:   time.Now().Year(),
-		Author: author,
+		Year:               time.Now().Year(),
+		Author:             author,
+		ProjectDescription: projectDescription,
 	}
 }
-
-// TODO: get license prefix for source code: GPLv3
