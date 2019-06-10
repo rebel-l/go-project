@@ -1,30 +1,40 @@
 package code
 
 import (
+	"github.com/rebel-l/go-project/code/pkg"
 	"github.com/rebel-l/go-project/code/service"
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/kind"
+	"github.com/rebel-l/go-project/lib/config"
 )
 
 var goGetCallback golang.CallbackGoGet
 var commitCallback git.CallbackAddAndCommit
 
-func Init(projectKind string, projectPath string, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
+func Init(projectKind string, projectPath string, cfg config.Config, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
 	goGetCallback = goGet
 	commitCallback = commit
 
 	var packages []string
+	var err error
+	files := []string{"go.mod"}
 	switch projectKind {
 	case kind.Package:
-		// TODO
+		err = pkg.Create(projectPath, cfg, commit)
 	case kind.Service:
 		packages = service.GetPackages()
+		files = append(files, "go.sum")
 	}
-	return addPackages(packages, projectPath)
+
+	if err != nil {
+		return err
+	}
+
+	return addPackages(packages, projectPath, files)
 }
 
-func addPackages(packages []string, projectPath string) error {
+func addPackages(packages []string, projectPath string, files []string) error {
 	for _, p := range packages {
 		err := goGetCallback(projectPath, p)
 		if err != nil {
@@ -32,5 +42,5 @@ func addPackages(packages []string, projectPath string) error {
 		}
 	}
 
-	return commitCallback([]string{"go.sum", "go.mod"}, "added go packages")
+	return commitCallback(files, "added go packages")
 }

@@ -45,7 +45,7 @@ func main() {
 		print.Error("Init license failed", err)
 		return
 	}
-	cfg := config.New(git.GetRemote(), license.Get())
+	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix())
 	fmt.Println()
 
 	// main gitignore
@@ -85,11 +85,11 @@ func main() {
 	// TODO
 
 	// code
-	if err := code.Init(kind.Get(), destination.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
+	if err := code.Init(kind.Get(), destination.Get(), cfg, golang.Get, git.AddFilesAndCommit); err != nil {
 		print.Error("Creating code base failed", err)
 		return
 	}
-	// TODO: package & service, inject license prefix
+	// TODO: package & service, inject license prefix & description
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {

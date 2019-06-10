@@ -1,6 +1,7 @@
 package license
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,10 +27,16 @@ const (
 
 var value string
 var description = "Creates project under the %s license"
+var prefix string
 
 // Get retuns the name selected license. If Init() was not called before it returns an empty string.
 func Get() string {
 	return value
+}
+
+// GetPrefix returns the license prefix.
+func GetPrefix() string {
+	return prefix
 }
 
 // Init let the user select the license and creates license file
@@ -108,7 +115,15 @@ func createLicense(filename string, params parameters) error {
 		_ = file.Close()
 	}()
 
-	return tmpl.ExecuteTemplate(file, value, params)
+	if err = tmpl.ExecuteTemplate(file, value, params); err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	if err = tmpl.ExecuteTemplate(&buf, fmt.Sprintf("%s_prefix", value), params); err == nil {
+		prefix = buf.String()
+	}
+	return nil
 }
 
 type parameters struct {
