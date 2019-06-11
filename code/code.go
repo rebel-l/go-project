@@ -24,7 +24,7 @@ func Init(projectKind string, projectPath string, cfg config.Config, goGet golan
 	case kind.Package:
 		err = pkg.Create(projectPath, cfg, commit)
 	case kind.Service:
-		packages = service.GetPackages()
+		packages = service.GetPackages().GetNames()
 		files = append(files, "go.sum")
 		params := service.NewParameters(cfg)
 		err = service.Create(projectPath, params, commit)

@@ -113,5 +113,5 @@ func main() {
 /*
 other TODO:
 1. exit with proper Exit Codes
-2. run gofmt on all created go files
+2. run goimports on all created go files
 */

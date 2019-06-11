@@ -14,13 +14,15 @@ import (
 type Parameters struct {
 	LicensePrefix string
 	Packages      []string
+	Project       string
 }
 
 // NewParameters returns a new struct of Parameters prefilled by a config and the definition of packages
 func NewParameters(cfg config.Config) Parameters {
 	return Parameters{
 		LicensePrefix: cfg.LicensePrefix,
-		Packages:      GetPackages(),
+		Packages:      GetPackages().Get(),
+		Project:       cfg.Project,
 	}
 }
 
@@ -49,11 +51,12 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 
 /*
 TODO:
-1. logrus
-2. mux
-3. ping endpoint
-4. flags with port parameter
+1. mux
+2. ping endpoint
+3. docs endpoint
+4. flags with port parameter ==> log port as info
 5. test file for ping endpoint
-6. swagger definition
-7. later: auth client - permission request
+6. test file for docs endpoint
+7. swagger definition
+8. later: auth client - permission request
 */

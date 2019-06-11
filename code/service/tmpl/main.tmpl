@@ -6,10 +6,12 @@
 package main
 {{if .Packages}}
 import (
-    {{range $val := .Packages}}"{{$val}}"{{end}}
+    {{range $val := .Packages}}{{$val}}
+    {{end}}
 ){{end}}
 
 func main() {
+    log.Info("Starting service: {{.Project}}")
     // TODO: add your code here
 }
 {{end}}
