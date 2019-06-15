@@ -5,6 +5,8 @@ import (
 
 	"github.com/fatih/color"
 
+	"gopkg.in/cheggaaa/pb.v1"
+
 	"github.com/rebel-l/go-project/code"
 	"github.com/rebel-l/go-project/description"
 	"github.com/rebel-l/go-project/destination"
@@ -51,41 +53,49 @@ func main() {
 	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get())
 	fmt.Println()
 
+	bar := pb.StartNew(10)
 	// main gitignore
 	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
 		print.Error("Create main gitignore failed", err)
 		return
 	}
+	bar.Increment()
 
 	// metalinter
 	if err := metalinter.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create metalinter config failed", err)
 		return
 	}
+	bar.Increment()
 
 	// travis ci
 	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create travis file failed", err)
 		return
 	}
+	bar.Increment()
 
 	// readme
 	if err := readme.Init(destination.Get(), cfg, git.AddFilesAndCommit); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
+	bar.Increment()
 
 	// go mod
 	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create go mod failed", err)
 		return
 	}
+	bar.Increment()
 
 	// vagrant for docker
 	// TODO
+	bar.Increment()
 
 	// docker
 	// TODO
+	bar.Increment()
 
 	// code
 	if err := code.Init(kind.Get(), destination.Get(), cfg, golang.Get, git.AddFilesAndCommit); err != nil {
@@ -93,20 +103,25 @@ func main() {
 		return
 	}
 	// TODO: service
+	bar.Increment()
 
 	// scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
 		print.Error("Create scripts failed", err)
 		return
 	}
+	bar.Increment()
 
 	// run goimports to import missing go packages and format code
 	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Formatting code failed", err)
 		return
 	}
+	bar.Increment()
 
 	// finish
+	bar.Finish()
+	fmt.Println()
 	print.Info("... Go-Project Tool finished successful!\n")
 	print.Warning(
 		fmt.Sprintf(
