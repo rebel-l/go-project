@@ -1,5 +1,13 @@
 package golang
 
+import (
+	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/rebel-l/go-project/git"
+)
+
 // Import represents the information of a go import
 type Import struct {
 	Name  string
@@ -34,4 +42,30 @@ func (i Imports) Get() []string {
 		imports = append(imports, v.Get())
 	}
 	return imports
+}
+
+// GoImports executes imports missing packages and formats code with goimports command in the given path
+func GoImports(projectPath string, commit git.CallbackAddAndCommit) error {
+	cmd := getGoImportsCommand(projectPath)
+	cmd.Dir = projectPath
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	var filenames []string
+	err := filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if strings.Contains(info.Name(), ".go") {
+			filenames = append(filenames, info.Name())
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return commit(filenames, "adding missing imports and format code")
 }

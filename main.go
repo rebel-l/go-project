@@ -100,6 +100,12 @@ func main() {
 		return
 	}
 
+	// run goimports to import missing go packages and format code
+	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit); err != nil {
+		print.Error("Formatting code failed", err)
+		return
+	}
+
 	// finish
 	print.Info("... Go-Project Tool finished successful!\n")
 	print.Warning(
@@ -113,5 +119,4 @@ func main() {
 /*
 other TODO:
 1. exit with proper Exit Codes
-2. run goimports on all created go files
 */

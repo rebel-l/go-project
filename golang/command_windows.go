@@ -2,7 +2,9 @@
 
 package golang
 
-import "os/exec"
+import (
+	"os/exec"
+)
 
 func getGoModCommand(packageName string) *exec.Cmd {
 	return exec.Command("cmd", "/C", "go", "mod", "init", packageName)
@@ -10,4 +12,8 @@ func getGoModCommand(packageName string) *exec.Cmd {
 
 func getGoGetCommand(packageName string) *exec.Cmd {
 	return exec.Command("cmd", "/C", "go", "get", packageName)
+}
+
+func getGoImportsCommand(path string) *exec.Cmd {
+	return exec.Command("cmd", "/C", "goimports", "-w", path)
 }
