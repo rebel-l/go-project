@@ -17,6 +17,7 @@ const (
 )
 
 var port int
+var router *mux.Router
 
 func main() {
     log.Info("Starting service: {{.Project}}")
@@ -28,8 +29,14 @@ func main() {
 }
 
 func initialize() {
+    // flags
     p := flag.Int("p", defaultPort, "The port the service listens to")
+
+    // feel free to add your personal flags here
+
     flag.Parse()
     port = *p
+
+    router = mux.NewRouter()
 }
 {{end}}

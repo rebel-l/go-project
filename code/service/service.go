@@ -53,7 +53,6 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 
 /*
 TODO:
-1. mux
 2. ping endpoint
 3. docs endpoint
 5. test file for ping endpoint
