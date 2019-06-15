@@ -59,7 +59,7 @@ func GoImports(projectPath string, commit git.CallbackAddAndCommit) error {
 		}
 
 		if strings.Contains(info.Name(), ".go") {
-			filenames = append(filenames, info.Name())
+			filenames = append(filenames, strings.Replace(path, projectPath, "", -1))
 		}
 		return nil
 	})
