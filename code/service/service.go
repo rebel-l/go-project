@@ -54,9 +54,9 @@ TODO:
 1. mux
 2. ping endpoint
 3. docs endpoint
-4. flags with port parameter ==> log port as info
 5. test file for ping endpoint
 6. test file for docs endpoint
 7. swagger definition
 8. later: auth client - permission request
+9. Use description as package description
 */

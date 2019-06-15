@@ -8,7 +8,6 @@ import (
 // GetPackages returns a list of packages to install with go mod
 func GetPackages() golang.Imports {
 	return golang.Imports{
-		{Name: "github.com/rebel-l/go-utils"},
 		{Name: "github.com/sirupsen/logrus", Alias: "log"},
 	}
 }

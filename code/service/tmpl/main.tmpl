@@ -10,8 +10,24 @@ import (
     {{end}}
 ){{end}}
 
+const (
+    defaultPort = 3000
+)
+
+var port int
+
 func main() {
     log.Info("Starting service: {{.Project}}")
+    initialize()
+
     // TODO: add your code here
+
+    log.Infof("Service listens to port %d", port)
+}
+
+func initialize() {
+    p := flag.Int("p", defaultPort, "The port the service listens to")
+    flag.Parse()
+    port = *p
 }
 {{end}}
