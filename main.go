@@ -50,6 +50,22 @@ func main() {
 		print.Error("Init license failed", err)
 		return
 	}
+
+	// project setup
+	setupProject()
+	fmt.Println()
+
+	// finish
+	print.Info("... Go-Project Tool finished successful!\n")
+	print.Warning(
+		fmt.Sprintf(
+			"Please switch to your project %s and execute './scripts/tools/setup.sh' to install the global tools (Windows users can use GitBash)\n",
+			destination.Get(),
+		),
+	)
+}
+
+func setupProject() {
 	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get())
 	fmt.Println()
 
@@ -118,17 +134,7 @@ func main() {
 		return
 	}
 	bar.Increment()
-
-	// finish
 	bar.Finish()
-	fmt.Println()
-	print.Info("... Go-Project Tool finished successful!\n")
-	print.Warning(
-		fmt.Sprintf(
-			"Please switch to your project %s and execute './scripts/tools/setup.sh' to install the global tools (Windows users can use GitBash)\n",
-			destination.Get(),
-		),
-	)
 }
 
 /*
