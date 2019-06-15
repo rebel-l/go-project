@@ -92,7 +92,7 @@ func getPossibleLicenses() option.Options {
 }
 
 func askUser() string {
-	t := prompt.Input("Enter the project type: ", func(d prompt.Document) []prompt.Suggest {
+	t := prompt.Input("Enter the license: ", func(d prompt.Document) []prompt.Suggest {
 		s := options.GetSuggestions(getPossibleLicenses())
 		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 	})
