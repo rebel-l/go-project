@@ -9,6 +9,6 @@ import (
 func GetPackages() golang.Imports {
 	return golang.Imports{
 		{Name: "github.com/gorilla/mux"},
-		{Name: "github.com/sirupsen/logrus", Alias: "log"},
+		{Name: "github.com/sirupsen/logrus"},
 	}
 }

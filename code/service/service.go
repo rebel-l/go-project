@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/lib/config"
+	"github.com/rebel-l/go-utils/osutils"
 )
 
 // Parameters defines parameters used for the go templates
@@ -30,33 +32,69 @@ func NewParameters(cfg config.Config) Parameters {
 
 // Create the basic files for a service
 func Create(projectPath string, params Parameters, commit git.CallbackAddAndCommit) error {
-	filename := filepath.Join(projectPath, "main.go")
 	pattern := filepath.Join("./code/service/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
 		return fmt.Errorf("failed to load templates: %s", err)
 	}
 
-	file, err := os.Create(filename)
-	if err != nil {
-		return fmt.Errorf("failed to create service main file: %s", err)
-	}
-	defer func() {
-		_ = file.Close()
-	}()
+	var files []string
+	for _, v := range getTemplateNames() {
+		if err := ensurePath(projectPath, v); err != nil {
+			return err
+		}
 
-	if err = tmpl.ExecuteTemplate(file, "main", params); err != nil {
-		return err
+		filename := strings.Replace(v, ".", string(filepath.Separator), -1) + ".go"
+		filename = filepath.Join(projectPath, filename)
+
+		files = append(files, filename)
+		file, err := os.Create(filename)
+		if err != nil {
+			return fmt.Errorf("failed to create service main file: %s", err)
+		}
+		defer func() {
+			_ = file.Close()
+		}()
+
+		if err = tmpl.ExecuteTemplate(file, v, params); err != nil {
+			return err
+		}
 	}
-	return commit([]string{filename}, "added main go file for service")
+
+	return commit(files, "added go base file for service")
+}
+
+func ensurePath(projectPath, templateName string) error {
+	parts := strings.Split(templateName, ".")
+	path := projectPath
+	if len(parts) > 1 {
+		p := []string{projectPath}
+		p = append(p, parts[:len(parts)-1]...)
+		path = filepath.Join(p...)
+	}
+
+	if !osutils.FileOrPathExists(path) {
+		return os.MkdirAll(path, 0755)
+	}
+	return nil
+}
+
+func getTemplateNames() []string {
+	return []string{
+		"main",
+		"endpoint.ping.package",
+		"endpoint.ping.ping",
+	}
 }
 
 /*
 TODO:
-2. ping endpoint
 3. docs endpoint
 5. test file for ping endpoint
 6. test file for docs endpoint
 7. swagger definition
 8. later: auth client - permission request
+9. investigate http.Server options
+10. graceful service (see gorilla/mux)
+11. middleware? ==> maybe service package
 */

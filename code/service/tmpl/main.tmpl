@@ -2,9 +2,9 @@
 {{.LicensePrefix}}
 */
 
-{{end}}/*
+{{else}}/*
 {{.Description}}
-*/
+*/{{end}}
 package main
 {{if .Packages}}
 import (
@@ -16,16 +16,26 @@ const (
     defaultPort = 3000
 )
 
+var log logrus.FieldLogger
 var port int
 var router *mux.Router
 
 func main() {
-    log.Info("Starting service: {{.Project}}")
+    log = logrus.New()
+    log.Info("Starting service: t")
     initialize()
 
-    // TODO: add your code here
+    srv := &http.Server{
+        Handler:      router,
+        Addr:         fmt.Sprintf(":%d", port),
+        WriteTimeout: 15 * time.Second,
+        ReadTimeout:  15 * time.Second,
+    }
 
     log.Infof("Service listens to port %d", port)
+    if err := srv.ListenAndServe(); err != nil {
+        log.Fatalf("Failed to start server: %s", err)
+    }
 }
 
 func initialize() {
@@ -38,5 +48,10 @@ func initialize() {
     port = *p
 
     router = mux.NewRouter()
+
+    // init routes
+    ping.Init(router, log)
+
+    // TODO: add your endpoints here
 }
 {{end}}

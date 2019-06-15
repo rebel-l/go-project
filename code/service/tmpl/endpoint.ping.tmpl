@@ -1,0 +1,29 @@
+{{define "endpoint.ping.package"}}{{if .LicensePrefix}}/*
+{{.LicensePrefix}}
+*/
+
+{{end}}// Package ping provides the ping endpoints
+package ping
+{{end}}
+
+{{define "endpoint.ping.ping"}}{{if .LicensePrefix}}/*
+{{.LicensePrefix}}
+*/
+
+{{end}}package ping
+
+var log logrus.FieldLogger
+
+// Init initialises the ping endpoints
+func Init(router *mux.Router, logger logrus.FieldLogger) {
+    log = logger
+    router.HandleFunc("/ping", pingHandler).Methods("GET")
+}
+
+func pingHandler(writer http.ResponseWriter, _ *http.Request) {
+    _, err := writer.Write([]byte("pong"))
+    if err != nil {
+        log.Errorf("ping failed: %s", err)
+    }
+}
+{{end}}
