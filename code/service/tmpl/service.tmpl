@@ -1,0 +1,221 @@
+{{define "service.package"}}// Package service provides the basic functions to run a service
+package service
+{{end}}
+
+{{define "service.service"}}package service
+
+var registeredEndpoints MapOfStringSlice
+
+// Service represents the fields necessary for a service
+type Service struct {
+    Log    logrus.FieldLogger
+    Router *mux.Router
+    Server *http.Server
+}
+
+// RegisterEndpoint registers a handler at the router for the given method and path.
+// In case the method is not known an error is return, otherwise a *Route.
+func (s Service) RegisterEndpoint(path, method string, f func(http.ResponseWriter, *http.Request)) (*mux.Route, error) {
+    methods := getAllowedHTTPMethods()
+    if methods.IsNotIn(method) {
+        return nil, fmt.Errorf("method %s is not allowed", method)
+    }
+
+    if registeredEndpoints == nil {
+        registeredEndpoints = make(MapOfStringSlice)
+    }
+    registeredEndpoints.AddUniqueValue(extractPath(path), method)
+
+    return s.Router.HandleFunc(path, f).Methods(method), nil
+}
+
+// ListenAndServe registers the catch all route and starts the server
+func (s Service) ListenAndServe() error {
+    s.Router.PathPrefix("/").Handler(&s)
+    return s.Server.ListenAndServe()
+}
+
+// ServeHTTP is the catch all handler
+func (s Service) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+    var err error
+    path := extractPath(request.RequestURI)
+
+    if registeredEndpoints.KeyExists(path) {
+        s.Log.Warnf("method not allowed: %s | %s", request.Method, request.RequestURI)
+        writer.Header().Add("Allow", strings.Join(registeredEndpoints.GetValuesForKey(path), ","))
+        writer.WriteHeader(405)
+        _, err = writer.Write([]byte("method not allowed, please check response headers for allowed methods"))
+    } else {
+        s.Log.Warnf("endpoint not implemented: %s | %s", request.Method, request.RequestURI)
+        writer.WriteHeader(404)
+        _, err = writer.Write([]byte("endpoint not implemented"))
+    }
+
+    if err != nil {
+        s.Log.Errorf("catchAll failed: %s", err)
+    }
+}
+
+func extractPath(path string) string {
+    r := regexp.MustCompile(`\/[\w-]+`)
+    return strings.Join(r.FindAllString(path, -1), "")
+}
+
+func getAllowedHTTPMethods() StringSlice {
+    return StringSlice{
+        http.MethodConnect,
+        http.MethodDelete,
+        http.MethodGet,
+        http.MethodHead,
+        http.MethodOptions,
+        http.MethodPatch,
+        http.MethodPost,
+        http.MethodPut,
+        http.MethodTrace,
+    }
+}
+{{end}}
+
+{{define "service.service_test"}}package service
+
+func TestExtractPath(t *testing.T) {
+    tests := []struct {
+        name  string
+        given string
+        want  string
+    }{
+        {
+            name:  "no slashes",
+            given: "ping",
+            want:  "",
+        },
+        {
+            name:  "slash only",
+            given: "/",
+            want:  "",
+        },
+        {
+            name:  "one slash at beginning",
+            given: "/ping",
+            want:  "/ping",
+        },
+        {
+            name:  "two slashes",
+            given: "/ping/something",
+            want:  "/ping/something",
+        },
+        {
+            name:  "two slashes with parameter",
+            given: "/ping/:id",
+            want:  "/ping",
+        },
+        {
+            name:  "two slashes with ending slash",
+            given: "/Pong/",
+            want:  "/Pong",
+        },
+        {
+            name:  "mixed cases",
+            given: "/pingPong",
+            want:  "/pingPong",
+        },
+        {
+            name:  "with dash",
+            given: "/ping-pong",
+            want:  "/ping-pong",
+        },
+        {
+            name:  "with underscore",
+            given: "/ping_pong",
+            want:  "/ping_pong",
+        },
+        {
+            name:  "with digits",
+            given: "/ping123",
+            want:  "/ping123",
+        },
+    }
+
+    for _, test := range tests {
+        t.Run(test.name, func(t *testing.T) {
+            actual := extractPath(test.given)
+            if test.want != actual {
+                t.Errorf("expected %s but got %s", test.want, actual)
+            }
+        })
+    }
+}
+{{end}}
+
+{{define "service.mapofstringslice"}}package service
+
+// MapOfStringSlice represents a map of string slices
+type MapOfStringSlice map[string]StringSlice
+
+// AddUniqueValue adds a value to the slice of strings by a given key.
+// It ensures that the value is added only once to the slice.
+func (m MapOfStringSlice) AddUniqueValue(key, value string) {
+    values, ok := m[key]
+    if ok {
+        if values.IsNotIn(value) {
+            m[key] = append(values, value)
+        }
+    } else {
+        m[key] = []string{value}
+    }
+}
+
+// KeyExists checks if a given key exists in the map
+func (m MapOfStringSlice) KeyExists(key string) bool {
+    _, ok := m[key]
+    return ok
+}
+
+// KeyNotExists checks if a given key doesn't exits in the map
+func (m MapOfStringSlice) KeyNotExists(key string) bool {
+    return !m.KeyExists(key)
+}
+
+// GetValuesForKey returns the StringSlice of a given key. If key doesn't exist, it returns an empty StringSlice
+func (m MapOfStringSlice) GetValuesForKey(key string) StringSlice {
+    values, ok := m[key]
+    if ok {
+        return values
+    }
+    return StringSlice{}
+}
+{{end}}
+
+{{define "service.stringslice"}}package service
+
+// StringSlice represents a slice of strings
+type StringSlice []string
+
+// IsIn searches for a given value in the slice. If search matches a value it returns true, otherwise false
+func (s StringSlice) IsIn(search string) bool {
+    for _, v := range s {
+        if v == search {
+            return true
+        }
+    }
+
+    return false
+}
+
+// IsNotIn searches for a given value in the slice. If search doesn't match a value it returns true, otherwise false
+func (s StringSlice) IsNotIn(search string) bool {
+    return !s.IsIn(search)
+}
+
+// Diff returns a StringSlice containing all values which are not in the given StringSlice
+func (s StringSlice) Diff(b StringSlice) StringSlice {
+    var result StringSlice
+    for _, a := range s {
+        if b.IsNotIn(a) {
+            result = append(result, a)
+        }
+    }
+
+    return result
+}
+{{end}}

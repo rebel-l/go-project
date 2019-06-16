@@ -15,9 +15,10 @@ package ping
 var log logrus.FieldLogger
 
 // Init initialises the ping endpoints
-func Init(router *mux.Router, logger logrus.FieldLogger) {
-    log = logger
-    router.HandleFunc("/ping", pingHandler).Methods("GET")
+func Init(svc service.Service) error {
+    log = svc.Log
+    _, err := svc.RegisterEndpoint("/ping", http.MethodGet, pingHandler)
+    return err
 }
 
 func pingHandler(writer http.ResponseWriter, _ *http.Request) {

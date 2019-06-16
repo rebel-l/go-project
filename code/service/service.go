@@ -84,6 +84,11 @@ func getTemplateNames() []string {
 		"main",
 		"endpoint.ping.package",
 		"endpoint.ping.ping",
+		"service.package",
+		"service.service",
+		"service.service_test",
+		"service.mapofstringslice",
+		"service.stringslice",
 	}
 }
 
@@ -97,4 +102,5 @@ TODO:
 9. investigate http.Server options
 10. graceful service (see gorilla/mux)
 11. middleware? ==> maybe service package
+12. generate request uuid and add to logging: service:uuid
 */
