@@ -87,8 +87,6 @@ func getTemplateNames() []string {
 		"service.package",
 		"service.service",
 		"service.service_test",
-		"service.mapofstringslice",
-		"service.stringslice",
 	}
 }
 

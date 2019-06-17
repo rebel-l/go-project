@@ -4,7 +4,7 @@ package service
 
 {{define "service.service"}}package service
 
-var registeredEndpoints MapOfStringSlice
+var registeredEndpoints mapof.StringSliceMap
 
 // Service represents the fields necessary for a service
 type Service struct {
@@ -22,7 +22,7 @@ func (s Service) RegisterEndpoint(path, method string, f func(http.ResponseWrite
     }
 
     if registeredEndpoints == nil {
-        registeredEndpoints = make(MapOfStringSlice)
+        registeredEndpoints = make(mapof.StringSliceMap)
     }
     registeredEndpoints.AddUniqueValue(extractPath(path), method)
 
@@ -61,8 +61,8 @@ func extractPath(path string) string {
     return strings.Join(r.FindAllString(path, -1), "")
 }
 
-func getAllowedHTTPMethods() StringSlice {
-    return StringSlice{
+func getAllowedHTTPMethods() slice.StringSlice {
+    return slice.StringSlice{
         http.MethodConnect,
         http.MethodDelete,
         http.MethodGet,
@@ -144,78 +144,5 @@ func TestExtractPath(t *testing.T) {
             }
         })
     }
-}
-{{end}}
-
-{{define "service.mapofstringslice"}}package service
-
-// MapOfStringSlice represents a map of string slices
-type MapOfStringSlice map[string]StringSlice
-
-// AddUniqueValue adds a value to the slice of strings by a given key.
-// It ensures that the value is added only once to the slice.
-func (m MapOfStringSlice) AddUniqueValue(key, value string) {
-    values, ok := m[key]
-    if ok {
-        if values.IsNotIn(value) {
-            m[key] = append(values, value)
-        }
-    } else {
-        m[key] = []string{value}
-    }
-}
-
-// KeyExists checks if a given key exists in the map
-func (m MapOfStringSlice) KeyExists(key string) bool {
-    _, ok := m[key]
-    return ok
-}
-
-// KeyNotExists checks if a given key doesn't exits in the map
-func (m MapOfStringSlice) KeyNotExists(key string) bool {
-    return !m.KeyExists(key)
-}
-
-// GetValuesForKey returns the StringSlice of a given key. If key doesn't exist, it returns an empty StringSlice
-func (m MapOfStringSlice) GetValuesForKey(key string) StringSlice {
-    values, ok := m[key]
-    if ok {
-        return values
-    }
-    return StringSlice{}
-}
-{{end}}
-
-{{define "service.stringslice"}}package service
-
-// StringSlice represents a slice of strings
-type StringSlice []string
-
-// IsIn searches for a given value in the slice. If search matches a value it returns true, otherwise false
-func (s StringSlice) IsIn(search string) bool {
-    for _, v := range s {
-        if v == search {
-            return true
-        }
-    }
-
-    return false
-}
-
-// IsNotIn searches for a given value in the slice. If search doesn't match a value it returns true, otherwise false
-func (s StringSlice) IsNotIn(search string) bool {
-    return !s.IsIn(search)
-}
-
-// Diff returns a StringSlice containing all values which are not in the given StringSlice
-func (s StringSlice) Diff(b StringSlice) StringSlice {
-    var result StringSlice
-    for _, a := range s {
-        if b.IsNotIn(a) {
-            result = append(result, a)
-        }
-    }
-
-    return result
 }
 {{end}}
