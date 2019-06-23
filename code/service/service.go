@@ -14,19 +14,15 @@ import (
 
 // Parameters defines parameters used for the go templates
 type Parameters struct {
-	LicensePrefix string
-	Packages      []string
-	Project       string
-	Description   string
+	Config   config.Config
+	Packages []string
 }
 
 // NewParameters returns a new struct of Parameters prefilled by a config and the definition of packages
 func NewParameters(cfg config.Config) Parameters {
 	return Parameters{
-		LicensePrefix: cfg.LicensePrefix,
-		Packages:      GetPackages().Get(),
-		Project:       cfg.Project,
-		Description:   cfg.Description,
+		Config:   cfg,
+		Packages: GetPackages().Get(),
 	}
 }
 
@@ -40,11 +36,11 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 
 	var files []string
 	for _, v := range getTemplateNames() {
-		if err := ensurePath(projectPath, v); err != nil {
+		if err := ensurePath(projectPath, v.Name); err != nil {
 			return err
 		}
 
-		filename := strings.Replace(v, ".", string(filepath.Separator), -1) + ".go"
+		filename := v.toFilenName()
 		filename = filepath.Join(projectPath, filename)
 
 		files = append(files, filename)
@@ -56,7 +52,7 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 			_ = file.Close()
 		}()
 
-		if err = tmpl.ExecuteTemplate(file, v, params); err != nil {
+		if err = tmpl.ExecuteTemplate(file, v.Name, params); err != nil {
 			return err
 		}
 	}
@@ -79,23 +75,27 @@ func ensurePath(projectPath, templateName string) error {
 	return nil
 }
 
-func getTemplateNames() []string {
-	return []string{
-		"main",
-		"endpoint.ping.package",
-		"endpoint.ping.ping",
-		"service.package",
-		"service.service",
-		"service.service_test",
+func getTemplateNames() []templateName {
+	return []templateName{
+		{Name: "endpoint.doc.doc", FileExtension: "go"},
+		{Name: "endpoint.doc.package", FileExtension: "go"},
+		{Name: "endpoint.doc.swagger", FileExtension: "yml"},
+		{Name: "endpoint.doc.web.index", FileExtension: "html"},
+		{Name: "endpoint.ping.package", FileExtension: "go"},
+		{Name: "endpoint.ping.ping", FileExtension: "go"},
+		{Name: "main", FileExtension: "go"},
+		{Name: "service.package", FileExtension: "go"},
+		{Name: "service.service", FileExtension: "go"},
+		{Name: "service.service_test", FileExtension: "go"},
 	}
 }
 
 /*
 TODO:
-3. docs endpoint
+3. docs endpoint FIXME: index.html: replace title, headline, project description, author, url & license information
 5. test file for ping endpoint
 6. test file for docs endpoint
-7. swagger definition
+7. swagger definition FIXME: swagger.yml: license prefix & license fields in definition
 8. later: auth client - permission request
 9. investigate http.Server options
 10. graceful service (see gorilla/mux)

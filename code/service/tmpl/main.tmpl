@@ -1,9 +1,9 @@
-{{define "main"}}{{if .LicensePrefix}}/*
-{{.LicensePrefix}}
+{{define "main"}}{{if .Config.LicensePrefix}}/*
+{{.Config.LicensePrefix}}
 */
 
 {{else}}/*
-{{.Description}}
+{{.Config.Description}}
 */{{end}}
 package main
 {{if .Packages}}
@@ -45,7 +45,7 @@ func initCustomRoutes() error {
 
 func main() {
     log = logrus.New()
-    log.Info("Starting service: {{.Project}}")
+    log.Info("Starting service: {{.Config.Project}}")
 
     initFlags()
     initService()
@@ -93,6 +93,10 @@ func initRoutes() error {
 
 func initDefaultRoutes() error {
     if err := ping.Init(svc); err != nil {
+        return err
+    }
+
+    if err := doc.Init(svc); err != nil {
         return err
     }
     return nil

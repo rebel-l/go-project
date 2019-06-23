@@ -66,7 +66,7 @@ func main() {
 }
 
 func setupProject() {
-	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get())
+	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get(), git.GetAuthor())
 	fmt.Println()
 
 	bar := pb.StartNew(10)

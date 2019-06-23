@@ -1,8 +1,16 @@
-{{define "service.package"}}// Package service provides the basic functions to run a service
+{{define "service.package"}}{{if .Config.LicensePrefix}}/*
+{{.Config.LicensePrefix}}
+*/
+
+{{end}}// Package service provides the basic functions to run a service
 package service
 {{end}}
 
-{{define "service.service"}}package service
+{{define "service.service"}}{{if .Config.LicensePrefix}}/*
+{{.Config.LicensePrefix}}
+*/
+
+{{end}}package service
 
 var registeredEndpoints mapof.StringSliceMap
 
@@ -27,6 +35,11 @@ func (s Service) RegisterEndpoint(path, method string, f func(http.ResponseWrite
     registeredEndpoints.AddUniqueValue(extractPath(path), method)
 
     return s.Router.HandleFunc(path, f).Methods(method), nil
+}
+
+// RegisterFileServer registers a file server to provide static files
+func (s Service) RegisterFileServer(path, method, filepath string) (*mux.Route, error) {
+    return s.Router.PathPrefix(path).Handler(http.StripPrefix(path, http.FileServer(http.Dir(filepath)))).Methods(method), nil
 }
 
 // ListenAndServe registers the catch all route and starts the server
