@@ -32,9 +32,9 @@ info:
     name: {{.Config.Author.Name}}
     email: {{.Config.Author.Email}}
     url: https://{{.Config.GetPackage}}
-  license:
-    name: {{.Config.License}}
-    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+    {{if .Config.License}}license:
+        name: {{.Config.License}}
+        url: https://www.gnu.org/licenses/gpl-3.0.en.html{{end}}
 tags:
   - name: public
     description: Public endpoints callable without authentication.
@@ -800,7 +800,7 @@ paths:
       <div id="content">
         <div id="project">
           <div class="pull-left">
-            <h1>Go-Project Service Base</h1>
+            <h1>{{.Config.Project}}</h1>
           </div>
           <div class="clearfix"></div>
         </div>
@@ -809,7 +809,7 @@ paths:
             <h2 id="welcome-to-apidoc">API and SDK Documentation</h2>
               <div class="app-desc">Version: 0.1.0</div>
             <hr>
-            <div>This project describes only the base endpoints a service created with go-project provides.</div>
+            <div>{{.Config.Description}}</div>
           </div>
         </div>
         <div id="sections">
@@ -1336,11 +1336,13 @@ except ApiException as e:
           <div id="footer">
             <div id="api-_footer">
               <p>Suggestions, contact, support and error reporting;
-                  <div class="app-desc">Information URL: <a href="https://github.com/rebel-l">https://github.com/rebel-l</a></div>
-                  <div class="app-desc">Contact Info: <a href="dj@rebel-l.net">dj@rebel-l.net</a></div>
+                  <div class="app-desc">Information URL: <a href="{{.Config.GetGitURL}}">{{.Config.GetGitURL}}</a></div>
+                  <div class="app-desc">Contact Info: <a href="{{.Config.Author.Email}}">{{.Config.Author.Email}}</a></div>
               </p>
-                <div class="license-info">GPL-3.0</div>
+                {{if .Config.License}}
+                <div class="license-info">{{.Config.License}}</div>
                 <div class="license-url">https://www.gnu.org/licenses/gpl-3.0.en.html</div>
+                {{end}}
             </div>
           </div>
       </div>

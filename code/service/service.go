@@ -92,7 +92,7 @@ func getTemplateNames() []templateName {
 
 /*
 TODO:
-3. docs endpoint FIXME: index.html: replace title, headline, project description, author, url & license information
+3. docs endpoint FIXME: index.html: license information
 5. test file for ping endpoint
 6. test file for docs endpoint
 7. swagger definition FIXME: swagger.yml: license prefix & license fields in definition

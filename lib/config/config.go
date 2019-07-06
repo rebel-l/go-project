@@ -28,6 +28,11 @@ func (c Config) GetPackage() string {
 	return fmt.Sprintf("%s/%s/%s", c.GitDomain, c.GitUsername, c.Project)
 }
 
+// GetGitURL returns the url based on the GitDomain/GitUsername/Project (package)
+func (c Config) GetGitURL() string {
+	return fmt.Sprintf("https://%s", c.GetPackage())
+}
+
 // New returns a new config extracted the repository and license
 func New(repository, license, licensePrefix, description string, author *object.Signature) Config {
 	/*
