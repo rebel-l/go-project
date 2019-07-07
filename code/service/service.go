@@ -7,6 +7,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/rebel-l/go-project/license"
+
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/lib/config"
 	"github.com/rebel-l/go-utils/osutils"
@@ -15,13 +17,15 @@ import (
 // Parameters defines parameters used for the go templates
 type Parameters struct {
 	Config   config.Config
+	License  license.License
 	Packages []string
 }
 
-// NewParameters returns a new struct of Parameters prefilled by a config and the definition of packages
-func NewParameters(cfg config.Config) Parameters {
+// NewParameters returns a new struct of Parameters prefilled by a config, license and the definition of packages
+func NewParameters(cfg config.Config, license license.License) Parameters {
 	return Parameters{
 		Config:   cfg,
+		License:  license,
 		Packages: GetPackages().Get(),
 	}
 }
@@ -92,10 +96,8 @@ func getTemplateNames() []templateName {
 
 /*
 TODO:
-3. docs endpoint FIXME: index.html: license information
 5. test file for ping endpoint
 6. test file for docs endpoint
-7. swagger definition FIXME: swagger.yml: license prefix & license fields in definition
 8. later: auth client - permission request
 9. investigate http.Server options
 10. graceful service (see gorilla/mux)

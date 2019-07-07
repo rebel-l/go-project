@@ -7,13 +7,14 @@ import (
 	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-project/lib/config"
+	"github.com/rebel-l/go-project/license"
 )
 
 var goGetCallback golang.CallbackGoGet
 var commitCallback git.CallbackAddAndCommit
 
 // Init creates the code base files.
-func Init(projectKind string, projectPath string, cfg config.Config, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
+func Init(projectKind string, projectPath string, cfg config.Config, license license.License, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
 	goGetCallback = goGet
 	commitCallback = commit
 
@@ -22,11 +23,12 @@ func Init(projectKind string, projectPath string, cfg config.Config, goGet golan
 	files := []string{"go.mod"}
 	switch projectKind {
 	case kind.Package:
-		err = pkg.Create(projectPath, cfg, commit)
+		params := pkg.NewParameters(cfg, license)
+		err = pkg.Create(projectPath, params, commit)
 	case kind.Service:
 		packages = service.GetPackages().GetNames()
 		files = append(files, "go.sum")
-		params := service.NewParameters(cfg)
+		params := service.NewParameters(cfg, license)
 		err = service.Create(projectPath, params, commit)
 	}
 

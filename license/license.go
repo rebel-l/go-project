@@ -20,23 +20,26 @@ import (
 )
 
 const (
-	licenseGPL3 = "GPLv3"
-	licenseMIT  = "MIT"
-	licenseNone = "none"
+	licenseGPL3Key = "GPLv3"
+	licenseMITKey  = "MIT"
+	licenseNoneKey = "none"
 )
 
-var value string
-var description = "Creates project under the %s license"
-var prefix string
-
-// Get retuns the name selected license. If Init() was not called before it returns an empty string.
-func Get() string {
-	return value
+// License represents all information about a license
+type License struct {
+	Name     string
+	URL      string
+	Prefix   string
+	BadgeURL string
 }
 
-// GetPrefix returns the license prefix.
-func GetPrefix() string {
-	return prefix
+var key string
+var value License
+var description = "Creates project under the %s license"
+
+// Get returns the name of selected license. If Init() was not called before it returns an empty string.
+func Get() License {
+	return value
 }
 
 // Init let the user select the license and creates license file
@@ -56,14 +59,28 @@ func Init(path string, author string, projectDescription string, commit git.Call
 		answer := askUser()
 		valid = licenses.IsValidOptionCI(answer)
 		if valid {
-			value = answer
+			key = answer
 		} else {
 			print.Error(fmt.Sprintf("License %s is not valid, please enter again\n", answer))
 		}
 	}
 
-	if value == strings.ToLower(licenseNone) {
+	switch key {
+	case strings.ToLower(licenseNoneKey):
+		value = License{}
 		return nil
+	case strings.ToLower(licenseGPL3Key):
+		value = License{
+			Name:     "GPL-3.0",
+			URL:      "https://www.gnu.org/licenses/gpl-3.0",
+			BadgeURL: "https://img.shields.io/badge/License-GPLv3-blue.svg",
+		}
+	case strings.ToLower(licenseMITKey):
+		value = License{
+			Name:     "MIT",
+			URL:      "https://opensource.org/licenses/MIT",
+			BadgeURL: "https://img.shields.io/badge/License-MIT-yellow.svg",
+		}
 	}
 
 	err := createLicense(filename, newParameters(author, projectDescription))
@@ -77,15 +94,15 @@ func Init(path string, author string, projectDescription string, commit git.Call
 func getPossibleLicenses() option.Options {
 	return option.Options{
 		{
-			Key:         licenseGPL3,
-			Description: fmt.Sprintf(description, licenseGPL3),
+			Key:         licenseGPL3Key,
+			Description: fmt.Sprintf(description, licenseGPL3Key),
 		},
 		{
-			Key:         licenseMIT,
-			Description: fmt.Sprintf(description, licenseMIT),
+			Key:         licenseMITKey,
+			Description: fmt.Sprintf(description, licenseMITKey),
 		},
 		{
-			Key:         licenseNone,
+			Key:         licenseNoneKey,
 			Description: "skips the creation of any license, if you want to do it later you need to do it manually",
 		},
 	}
@@ -115,13 +132,13 @@ func createLicense(filename string, params parameters) error {
 		_ = file.Close()
 	}()
 
-	if err = tmpl.ExecuteTemplate(file, value, params); err != nil {
+	if err = tmpl.ExecuteTemplate(file, key, params); err != nil {
 		return err
 	}
 
 	var buf bytes.Buffer
-	if err = tmpl.ExecuteTemplate(&buf, fmt.Sprintf("%s_prefix", value), params); err == nil { // TODO: do also error handling in a proper way. Ignore only error that template was not found, as this is expected
-		prefix = buf.String()
+	if err = tmpl.ExecuteTemplate(&buf, fmt.Sprintf("%s_prefix", key), params); err == nil { // TODO: do also error handling in a proper way. Ignore only error that template was not found, as this is expected
+		value.Prefix = buf.String()
 	}
 	return nil
 }

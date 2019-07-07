@@ -9,13 +9,11 @@ import (
 
 // Config represents configuration data
 type Config struct {
-	Author        *object.Signature
-	Project       string
-	GitDomain     string
-	GitUsername   string
-	License       string
-	LicensePrefix string
-	Description   string
+	Author      *object.Signature
+	Project     string
+	GitDomain   string
+	GitUsername string
+	Description string
 }
 
 // GetGitCompany returns the GitDomain without top level domain
@@ -34,13 +32,13 @@ func (c Config) GetGitURL() string {
 }
 
 // New returns a new config extracted the repository and license
-func New(repository, license, licensePrefix, description string, author *object.Signature) Config {
+func New(repository, description string, author *object.Signature) Config {
 	/*
 		Example strings to split:
 			https://github.com/rebel-l/auth-service.git
 			git@github.com:rebel-l/auth-service.git
 	*/
-	params := Config{License: license, LicensePrefix: licensePrefix, Description: description, Author: author}
+	params := Config{Description: description, Author: author}
 	repository = strings.ToLower(repository)
 	pieces := strings.Split(repository, "/")
 	params.Project = strings.Replace(pieces[len(pieces)-1], ".git", "", -1)

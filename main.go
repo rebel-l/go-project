@@ -66,7 +66,7 @@ func main() {
 }
 
 func setupProject() {
-	cfg := config.New(git.GetRemote(), license.Get(), license.GetPrefix(), description.Get(), git.GetAuthor())
+	cfg := config.New(git.GetRemote(), description.Get(), git.GetAuthor())
 	fmt.Println()
 
 	bar := pb.StartNew(10)
@@ -92,7 +92,7 @@ func setupProject() {
 	bar.Increment()
 
 	// readme
-	if err := readme.Init(destination.Get(), cfg, git.AddFilesAndCommit); err != nil {
+	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
@@ -114,7 +114,7 @@ func setupProject() {
 	bar.Increment()
 
 	// code
-	if err := code.Init(kind.Get(), destination.Get(), cfg, golang.Get, git.AddFilesAndCommit); err != nil {
+	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
 		print.Error("Creating code base failed", err)
 		return
 	}

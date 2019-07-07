@@ -1,9 +1,9 @@
-{{define "pkg"}}{{if .LicensePrefix}}/*
-{{.LicensePrefix}}
+{{define "pkg"}}{{if .License.Prefix}}/*
+{{.License.Prefix}}
 */
 
-{{end}}// Package {{.Project}} TODO: description of package
-package {{.Project}}
+{{end}}// Package {{.Config.Project}} TODO: description of package
+package {{.Config.Project}}
 
 // TODO: add your code here
 {{end}}

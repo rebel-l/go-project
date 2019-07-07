@@ -1,13 +1,13 @@
-{{define "service.package"}}{{if .Config.LicensePrefix}}/*
-{{.Config.LicensePrefix}}
+{{define "service.package"}}{{if .License.Prefix}}/*
+{{.License.Prefix}}
 */
 
 {{end}}// Package service provides the basic functions to run a service
 package service
 {{end}}
 
-{{define "service.service"}}{{if .Config.LicensePrefix}}/*
-{{.Config.LicensePrefix}}
+{{define "service.service"}}{{if .License.Prefix}}/*
+{{.License.Prefix}}
 */
 
 {{end}}package service
