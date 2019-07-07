@@ -87,6 +87,7 @@ func getTemplateNames() []templateName {
 		{Name: "endpoint.doc.web.index", FileExtension: "html"},
 		{Name: "endpoint.ping.package", FileExtension: "go"},
 		{Name: "endpoint.ping.ping", FileExtension: "go"},
+		{Name: "endpoint.ping.ping_test", FileExtension: "go"},
 		{Name: "main", FileExtension: "go"},
 		{Name: "service.package", FileExtension: "go"},
 		{Name: "service.service", FileExtension: "go"},
@@ -96,7 +97,9 @@ func getTemplateNames() []templateName {
 
 /*
 TODO:
-5. test file for ping endpoint
+3. Fix git remote
+4. move service base to own package ==> go mod compatible
+5. test file for ping endpoint ==> GOMOCK: test error of response writer
 6. test file for docs endpoint
 8. later: auth client - permission request
 9. investigate http.Server options

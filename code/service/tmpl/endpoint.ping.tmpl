@@ -28,3 +28,65 @@ func pingHandler(writer http.ResponseWriter, _ *http.Request) {
     }
 }
 {{end}}
+
+{{define "endpoint.ping.ping_test"}}{{if .License.Prefix}}/*
+{{.License.Prefix}}
+*/
+
+{{end}}package ping
+
+func TestPingHandler(t *testing.T) {
+    req, err := http.NewRequest("GET", "/ping", nil)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    rr := httptest.NewRecorder()
+    handler := http.HandlerFunc(pingHandler)
+    handler.ServeHTTP(rr, req)
+
+    if status := rr.Code; status != http.StatusOK {
+        t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+    }
+
+    expected := "pong"
+    if rr.Body.String() != expected {
+        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
+    }
+}
+
+func TestInit(t *testing.T) {
+    router := mux.NewRouter()
+    srv := &http.Server{
+        Handler:      router,
+        Addr:         fmt.Sprintf(":%d", 30000),
+        WriteTimeout: 15 * time.Second,
+        ReadTimeout:  15 * time.Second,
+    }
+    svc := service.Service{
+        Log:    logrus.New(),
+        Router: router,
+        Server: srv,
+    }
+
+    if err := Init(svc); err != nil {
+        t.Fatalf("init failed: %s", err)
+    }
+
+    err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+        pathTemplate, err := route.GetPathTemplate()
+        if err != nil {
+            return err
+        }
+
+        if pathTemplate != "/ping" {
+            t.Errorf("Expected single endpoint '/ping' but got '%s'", pathTemplate)
+        }
+        return nil
+    })
+
+    if err != nil {
+        t.Fatalf("walk through routes failed: %s", err)
+    }
+}
+{{end}}
