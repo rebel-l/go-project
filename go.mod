@@ -11,5 +11,5 @@ require (
 	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 // indirect
 	github.com/rebel-l/go-utils v0.0.0-20190525141611-a9607abf56dc
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
-	gopkg.in/src-d/go-git.v4 v4.11.0
+	gopkg.in/src-d/go-git.v4 v4.12.0
 )
