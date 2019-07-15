@@ -1,17 +1,18 @@
 package git
 
 import (
+	"path/filepath"
 	"strings"
 
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 
 	"github.com/c-bata/go-prompt"
 	"github.com/fatih/color"
 
 	"github.com/rebel-l/go-utils/osutils"
-
-	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 const (
@@ -45,6 +46,7 @@ func Setup(projectPath string) {
 	}
 
 	author = askForAuthor()
+	remote = askForRemote()
 
 	ok, err := hasRemote()
 	if err != nil {
@@ -88,8 +90,12 @@ func Setup(projectPath string) {
 	//fmt.Println("TEST")
 }
 
+func Finalize() {
+	// TODO: push to remote
+}
+
 func open(path string) bool {
-	if !osutils.FileOrPathExists(path + "/" + git.GitDirName) {
+	if !osutils.FileOrPathExists(filepath.Join(path, git.GitDirName)) {
 		return false
 	}
 
@@ -118,17 +124,14 @@ func hasRemote() (bool, error) {
 }
 
 func createRemote() error {
-	remote = askForRemote()
 	if remote == "" {
 		return nil
 	}
-	return nil // TODO: remove as soon as set of remote origin is fixed
 
-	//_, err := repo.CreateRemote(&config.RemoteConfig{Name: git.DefaultRemoteName, URLs: []string{remote}})
-	//if err != nil {
-	//	return err
-	//}
-	//
+	_, err := repo.CreateRemote(&config.RemoteConfig{Name: git.DefaultRemoteName, URLs: []string{remote}})
+	return err
+
+	// TODO: pull for existing repo
 	//workingTree, err := repo.Worktree()
 	//if err != nil {
 	//	return err
