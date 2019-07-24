@@ -1,6 +1,7 @@
 package git
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -90,8 +91,11 @@ func Setup(projectPath string) {
 	//fmt.Println("TEST")
 }
 
-func Finalize() {
+// Finalize pushes repository to remote oigin
+func Finalize() error {
+	fmt.Println("FINALIZE")
 	// TODO: push to remote
+	return nil
 }
 
 func open(path string) bool {
@@ -149,7 +153,7 @@ func askForRemote() string {
 }
 
 func askForAuthor() *object.Signature {
-	name := prompt.Input("Enter your git username (used as author and for license): ", func(d prompt.Document) []prompt.Suggest {
+	name := prompt.Input("Enter your name (used as author in git and for license): ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	})
 

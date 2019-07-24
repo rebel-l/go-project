@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -22,7 +23,13 @@ import (
 	"github.com/rebel-l/go-project/travisci"
 )
 
+var pushToRemote *bool
+
 func main() {
+	// setup parameters
+	pushToRemote = flag.Bool("nopush", false, "avoids pushing to remote origin which is helpful for development")
+	flag.Parse()
+
 	// introduction
 	fmt.Println()
 	title := color.New(color.Bold, color.FgGreen)
@@ -69,7 +76,11 @@ func setupProject() {
 	cfg := config.New(git.GetRemote(), description.Get(), git.GetAuthor())
 	fmt.Println()
 
-	bar := pb.StartNew(10)
+	total := 10
+	if !*pushToRemote {
+		total++
+	}
+	bar := pb.StartNew(total)
 	// main gitignore
 	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
 		print.Error("Create main gitignore failed", err)
@@ -134,6 +145,15 @@ func setupProject() {
 		return
 	}
 	bar.Increment()
+
+	// final step: push to remote
+	if !*pushToRemote {
+		if err := git.Finalize(); err != nil {
+			print.Error("Pushing to remote failed", err)
+		}
+		bar.Increment()
+	}
+
 	bar.Finish()
 }
 
