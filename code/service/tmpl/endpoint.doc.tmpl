@@ -178,7 +178,6 @@ paths:
         return textFile;
       };
 
-      /// TODO: Implement resizing for expanding within iframe
       function callResize() {
         window.parent.postMessage('resize', "*");
       }
@@ -2282,7 +2281,6 @@ except ApiException as e:
   	exports.cssClass = cssClass;
   	/*
   	  * Creates a new DOM element with given type and class
-  	  * TODO: move me to helpers
   	*/
   	function createElement(type, className, content) {
   	    var el = document.createElement(type);

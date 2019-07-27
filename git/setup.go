@@ -56,7 +56,6 @@ func Setup(projectPath string) {
 	}
 
 	if !ok {
-		// TODO: do as last step together with push
 		if err = createRemote(); err != nil {
 			_, _ = errMsg.Printf("Failed to set remote origin on repo: %s\n", err)
 			return
