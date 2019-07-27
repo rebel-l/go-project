@@ -70,6 +70,7 @@ func main() {
 			destination.Get(),
 		),
 	)
+	print.Warning("You need to activate this project manually for these third party tools:\nhttps://travis-ci.org\nhttps://codecov.io/gh/rebel-l/go-project-test\n")
 }
 
 func setupProject() {
@@ -161,4 +162,5 @@ func setupProject() {
 other TODO:
 1. exit with proper Exit Codes
 2. Fix: cyclomatic complexity 12 of function setupProject() is high (> 10) (gocyclo)
+3. Ensure templates are compiled in the binary created by `go install`
 */
