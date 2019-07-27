@@ -50,7 +50,7 @@ func main() {
 	fmt.Println()
 
 	// git setup
-	git.Setup(destination.Get())
+	git.Setup(destination.Get(), kind.Get())
 
 	// license
 	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit); err != nil {
@@ -160,4 +160,5 @@ func setupProject() {
 /*
 other TODO:
 1. exit with proper Exit Codes
+2. Fix: cyclomatic complexity 12 of function setupProject() is high (> 10) (gocyclo)
 */

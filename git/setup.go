@@ -3,6 +3,7 @@ package git
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4"
@@ -13,6 +14,7 @@ import (
 	"github.com/c-bata/go-prompt"
 	"github.com/fatih/color"
 
+	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-utils/osutils"
 )
 
@@ -37,7 +39,7 @@ func GetRemote() string {
 }
 
 // Setup ensures that git repo is created and remote origin is set
-func Setup(projectPath string) {
+func Setup(projectPath, kind string) {
 	rootPath = projectPath
 	if !open(projectPath) {
 		if err := createRepo(projectPath); err != nil {
@@ -47,7 +49,21 @@ func Setup(projectPath string) {
 	}
 
 	author = askForAuthor()
-	remote = askForRemote()
+
+	var remoteOK bool
+	for !remoteOK {
+		remote = askForRemote()
+		var allowedCharacters string
+		remoteOK, allowedCharacters = validateRemote(kind)
+		if !remoteOK {
+			print.Error(
+				fmt.Sprintf(
+					"\nRemote origin contains not allowed characters after the last seperator (/): \n%s\n",
+					allowedCharacters,
+				),
+			)
+		}
+	}
 
 	ok, err := hasRemote()
 	if err != nil {
@@ -184,4 +200,26 @@ func checkoutBranch() error {
 		Branch: developBranch,
 		Create: true,
 	})
+}
+
+func validateRemote(kind string) (bool, string) {
+	var allowedCharacters string
+	var res bool
+	var rule string
+	switch kind {
+	case "service":
+		rule = "\\/[a-zA-Z]+[a-zA-Z0-9\\.\\_\\-]*git"
+		allowedCharacters = "letters: a-z A-Z \n digits: 0-9 \n dot: . \n underscore: _ \n hyphen: -"
+	case "package":
+		rule = "\\/[a-z]+[a-z0-9\\.\\_]*git"
+		allowedCharacters = "letters: a-z \n digits: 0-9 \n dot: . \n underscore: _"
+	}
+
+	i := strings.LastIndex(remote, "/")
+	if i < 0 {
+		i = 0
+	}
+
+	res, _ = regexp.MatchString(rule, remote[i:])
+	return res, allowedCharacters
 }
