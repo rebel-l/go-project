@@ -108,9 +108,7 @@ func Setup(projectPath, kind string) {
 
 // Finalize pushes repository to remote oigin
 func Finalize() error {
-	fmt.Println("FINALIZE")
-	// TODO: push to remote
-	return nil
+	return repo.Push(&git.PushOptions{})
 }
 
 func open(path string) bool {
