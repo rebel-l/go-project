@@ -97,7 +97,6 @@ func getTemplateNames() []templateName {
 
 /*
 TODO:
-3. Fix git remote
 4. move service base to own package ==> go mod compatible
 5. test file for ping endpoint ==> GOMOCK: test error of response writer
 6. test file for docs endpoint
