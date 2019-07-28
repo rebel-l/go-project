@@ -1,4 +1,4 @@
-package metalinter
+package golangci
 
 import (
 	"fmt"
@@ -9,26 +9,26 @@ import (
 	"github.com/rebel-l/go-project/git"
 )
 
-// Init initialises the metalinter
+// Init initialises the golangci
 func Init(projectPath string, commit git.CallbackAddAndCommit) error {
-	pattern := filepath.Join("./metalinter/tmpl", "*.tmpl")
+	pattern := filepath.Join("./golangci/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
 		return fmt.Errorf("failed to load templates: %s", err)
 	}
 
-	filename := filepath.Join(projectPath, "gometalinter.json")
+	filename := filepath.Join(projectPath, ".golangci.json")
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("failed to create gometalinter config: %s", err)
+		return fmt.Errorf("failed to create golangci config: %s", err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	if err = tmpl.ExecuteTemplate(file, "gometalinter", nil); err != nil {
+	if err = tmpl.ExecuteTemplate(file, "golangci", nil); err != nil {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 
-	return commit([]string{filename}, "added config for metalinter")
+	return commit([]string{filename}, "added config for golangci")
 }

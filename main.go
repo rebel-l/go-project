@@ -13,11 +13,11 @@ import (
 	"github.com/rebel-l/go-project/destination"
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
+	"github.com/rebel-l/go-project/golangci"
 	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-project/lib/config"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-project/license"
-	"github.com/rebel-l/go-project/metalinter"
 	"github.com/rebel-l/go-project/readme"
 	"github.com/rebel-l/go-project/scripts"
 	"github.com/rebel-l/go-project/travisci"
@@ -89,9 +89,9 @@ func setupProject() {
 	}
 	bar.Increment()
 
-	// metalinter
-	if err := metalinter.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
-		print.Error("Create metalinter config failed", err)
+	// golangci
+	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+		print.Error("Create golangci config failed", err)
 		return
 	}
 	bar.Increment()
