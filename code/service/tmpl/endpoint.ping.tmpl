@@ -12,16 +12,19 @@ package ping
 
 {{end}}package ping
 
-var log logrus.FieldLogger
+type ping struct {
+    svc *smis.Service
+}
 
 // Init initialises the ping endpoints
-func Init(svc service.Service) error {
-    log = svc.Log
-    _, err := svc.RegisterEndpoint("/ping", http.MethodGet, pingHandler)
+func Init(svc *smis.Service) error {
+    endpoint := &ping{svc: svc}
+    _, err := svc.RegisterEndpoint("/ping", http.MethodGet, endpoint.pingHandler)
     return err
 }
 
-func pingHandler(writer http.ResponseWriter, _ *http.Request) {
+func (p *ping) pingHandler(writer http.ResponseWriter, request *http.Request) {
+    log := p.svc.NewLogForRequestID(request.Context())
     _, err := writer.Write([]byte("pong"))
     if err != nil {
         log.Errorf("ping failed: %s", err)
@@ -41,17 +44,22 @@ func TestPingHandler(t *testing.T) {
         t.Fatal(err)
     }
 
-    rr := httptest.NewRecorder()
-    handler := http.HandlerFunc(pingHandler)
-    handler.ServeHTTP(rr, req)
+    w := httptest.NewRecorder()
+    svc, err := smis.NewService(&http.Server{}, mux.NewRouter(), logrus.New())
+    if err != nil {
+        t.Fatal(err)
+    }
+    ep := &ping{svc: svc}
+    handler := http.HandlerFunc(ep.pingHandler)
+    handler.ServeHTTP(w, req)
 
-    if status := rr.Code; status != http.StatusOK {
+    if status := w.Code; status != http.StatusOK {
         t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
     }
 
     expected := "pong"
-    if rr.Body.String() != expected {
-        t.Errorf("handler returned unexpected body: got %v want %v", rr.Body.String(), expected)
+    if w.Body.String() != expected {
+        t.Errorf("handler returned unexpected body: got %v want %v", w.Body.String(), expected)
     }
 }
 
@@ -63,7 +71,7 @@ func TestInit(t *testing.T) {
         WriteTimeout: 15 * time.Second,
         ReadTimeout:  15 * time.Second,
     }
-    svc := service.Service{
+    svc := &smis.Service{
         Log:    logrus.New(),
         Router: router,
         Server: srv,

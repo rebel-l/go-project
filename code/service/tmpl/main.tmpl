@@ -18,7 +18,7 @@ const (
 
 var log logrus.FieldLogger
 var port *int
-var svc service.Service
+var svc *smis.Service
 
 func initCustomFlags() {
     /**
@@ -72,10 +72,11 @@ func initService() {
         WriteTimeout: 15 * time.Second,
         ReadTimeout:  15 * time.Second,
     }
-    svc = service.Service{
-        Log:    log,
-        Router: router,
-        Server: srv,
+
+    var err error
+    svc, err = smis.NewService(srv, router, log)
+    if err != nil {
+        log.Fatalf("failed to initialize service: %s", err)
     }
 }
 

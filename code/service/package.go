@@ -10,6 +10,7 @@ func GetPackages() golang.Imports {
 	return golang.Imports{
 		{Name: "github.com/gorilla/mux"},
 		{Name: "github.com/rebel-l/go-utils"},
+		{Name: "github.com/rebel-l/smis"},
 		{Name: "github.com/sirupsen/logrus"},
 	}
 }
