@@ -149,7 +149,7 @@ func setupProject() {
 
 	// final step: push to remote
 	if !*pushToRemote {
-		if err := git.Finalize(); err != nil {
+		if err := git.Finalize(destination.Get()); err != nil {
 			print.Error("Pushing to remote failed", err)
 		}
 		bar.Increment()

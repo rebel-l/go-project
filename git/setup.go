@@ -107,8 +107,15 @@ func Setup(projectPath, kind string) {
 }
 
 // Finalize pushes repository to remote oigin
-func Finalize() error {
-	return repo.Push(&git.PushOptions{})
+func Finalize(path string) error {
+	if err := repo.Push(&git.PushOptions{}); err != nil {
+		return fmt.Errorf("failed to push changes: %s", err)
+	}
+	cmd := getSetUpstreamCommand(path)
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to set upstream: %s", err)
+	}
+	return nil
 }
 
 func open(path string) bool {

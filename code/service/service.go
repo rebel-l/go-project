@@ -94,13 +94,12 @@ func getTemplateNames() []templateName {
 
 /*
 TODO:
-1. GIT: set remote tracking branch
-2. ask for middleware chains!
+++2. ask for middleware chains!
 5. test file for ping endpoint ==> GOMOCK: test error of response writer
 6. test file for docs endpoint
 8. later: auth client - permission request
 9. investigate http.Server options
 10. graceful service (see gorilla/mux)
-11. middleware? ==> maybe service package
-12. generate request uuid and add to logging: service:uuid
+++11. middleware? ==> maybe service package
+++12. generate request uuid and add to logging: service:uuid
 */
