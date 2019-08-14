@@ -70,7 +70,7 @@ func main() {
 			destination.Get(),
 		),
 	)
-	print.Warning("You need to activate this project manually for these third party tools:\nhttps://travis-ci.org\nhttps://codecov.io/gh/rebel-l/go-project-test\n")
+	print.Warning("You need to activate this project manually for these third party tools:\nhttps://travis-ci.org\nhttps://codecov.io\n")
 }
 
 func setupProject() {
