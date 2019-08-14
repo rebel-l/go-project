@@ -67,7 +67,7 @@ func Setup(projectPath, kind string) {
 
 	ok, err := hasRemote()
 	if err != nil {
-		_, _ = errMsg.Printf("\n", err)
+		_, _ = errMsg.Printf("%s\n", err)
 		return
 	}
 
