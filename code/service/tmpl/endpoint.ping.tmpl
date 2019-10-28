@@ -20,11 +20,13 @@ type ping struct {
 func Init(svc *smis.Service) error {
     endpoint := &ping{svc: svc}
     _, err := svc.RegisterEndpoint("/ping", http.MethodGet, endpoint.pingHandler)
+
     return err
 }
 
 func (p *ping) pingHandler(writer http.ResponseWriter, request *http.Request) {
     log := p.svc.NewLogForRequestID(request.Context())
+
     _, err := writer.Write([]byte("pong"))
     if err != nil {
         log.Errorf("ping failed: %s", err)
@@ -45,10 +47,12 @@ func TestPingHandler(t *testing.T) {
     }
 
     w := httptest.NewRecorder()
+
     svc, err := smis.NewService(&http.Server{}, mux.NewRouter(), logrus.New())
     if err != nil {
         t.Fatal(err)
     }
+
     ep := &ping{svc: svc}
     handler := http.HandlerFunc(ep.pingHandler)
     handler.ServeHTTP(w, req)
