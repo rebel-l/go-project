@@ -1,4 +1,4 @@
-{{define "readme"}}[![Build Status](https://travis-ci.org/{{.Config.GitUsername}}/{{.Config.Project}}.svg?branch=master)](https://travis-ci.org/{{.Config.GitUsername}}/{{.Config.Project}})
+{{define "readme"}}[![Build Status](https://travis-ci.com/{{.Config.GitUsername}}/{{.Config.Project}}.svg?branch=master)](https://travis-ci.com/{{.Config.GitUsername}}/{{.Config.Project}})
 [![codecov](https://codecov.io/gh/{{.Config.GitUsername}}/{{.Config.Project}}/branch/master/graph/badge.svg)](https://codecov.io/gh/{{.Config.GitUsername}}/{{.Config.Project}})
 [![Go Report Card](https://goreportcard.com/badge/{{.Config.GitDomain}}/{{.Config.GitUsername}}/{{.Config.Project}})](https://goreportcard.com/report/{{.Config.GitDomain}}/{{.Config.GitUsername}}/{{.Config.Project}})
 {{if (ne .License.Name "")}}[![License: {{.License.Name}}]({{.License.BadgeURL}})]({{.License.URL}})
