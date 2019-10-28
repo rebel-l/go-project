@@ -1,5 +1,13 @@
 {{define "golangci"}}{
     "issues": {
+        "exclude-rules": [
+            {
+                "path": "main.go",
+                "linters": [
+                    "wsl"
+                ]
+            }
+        ],
         "exclude-use-default": false,
         "max-issues-per-linter": 0,
         "max-same-issues": 0
