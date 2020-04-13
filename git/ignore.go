@@ -18,10 +18,10 @@ const (
 )
 
 // CallbackCreateIgnore defines the callback to create ignore files
-type CallbackCreateIgnore func(path, ignoreType, commitMsg string) error
+type CallbackCreateIgnore func(path, ignoreType, commitMsg string, step int) error
 
 // CreateIgnore create an git ignore file on the given path and ignore type
-func CreateIgnore(path, ignoreType, commitMsg string) error {
+func CreateIgnore(path, ignoreType, commitMsg string, step int) error {
 	if !osutils.FileOrPathExists(path) {
 		return fmt.Errorf("path %s doesn't exist", path)
 	}
@@ -49,7 +49,7 @@ func CreateIgnore(path, ignoreType, commitMsg string) error {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 
-	return AddFilesAndCommit([]string{filename}, commitMsg)
+	return AddFilesAndCommit([]string{filename}, commitMsg, step)
 }
 
 func getPossibleIgnoreTypes() option.Options {

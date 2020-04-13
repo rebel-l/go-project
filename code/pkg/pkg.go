@@ -27,7 +27,7 @@ func NewParameters(cfg config.Config, license license.License) Parameters {
 }
 
 // Create creates the basic files for a package
-func Create(projectPath string, params Parameters, commit git.CallbackAddAndCommit) error {
+func Create(projectPath string, params Parameters, commit git.CallbackAddAndCommit, step int) error {
 	filename := filepath.Join(projectPath, fmt.Sprintf("%s.go", params.Config.Project))
 	pattern := filepath.Join("./code/pkg/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
@@ -46,5 +46,5 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 	if err = tmpl.ExecuteTemplate(file, "pkg", params); err != nil {
 		return err
 	}
-	return commit([]string{filename}, "added main go file for package")
+	return commit([]string{filename}, "added main go file for package", step)
 }

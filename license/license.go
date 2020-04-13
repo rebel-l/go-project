@@ -43,7 +43,7 @@ func Get() License {
 }
 
 // Init let the user select the license and creates license file
-func Init(path string, author string, projectDescription string, commit git.CallbackAddAndCommit) error {
+func Init(path string, author string, projectDescription string, commit git.CallbackAddAndCommit, step int) error {
 	filename := filepath.Join(path, "LICENSE")
 	if osutils.FileOrPathExists(filename) {
 		print.Info("Skip creating a license file as it already exists")
@@ -88,7 +88,7 @@ func Init(path string, author string, projectDescription string, commit git.Call
 		return err
 	}
 
-	return commit([]string{filename}, "added license")
+	return commit([]string{filename}, "added license", step)
 }
 
 func getPossibleLicenses() option.Options {

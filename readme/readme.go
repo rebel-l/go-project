@@ -27,7 +27,7 @@ func NewParameters(cfg config.Config, license license.License) Parameters {
 }
 
 // Init intialises th readme file
-func Init(projectPath string, cfg config.Config, license license.License, commit git.CallbackAddAndCommit) error {
+func Init(projectPath string, cfg config.Config, license license.License, commit git.CallbackAddAndCommit, step int) error {
 	pattern := filepath.Join("./readme/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -47,5 +47,5 @@ func Init(projectPath string, cfg config.Config, license license.License, commit
 	if err = tmpl.ExecuteTemplate(file, "readme", params); err != nil {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
-	return commit([]string{filename}, "added readme")
+	return commit([]string{filename}, "added readme", step)
 }

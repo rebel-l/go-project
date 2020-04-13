@@ -53,7 +53,7 @@ func main() {
 	git.Setup(destination.Get(), kind.Get())
 
 	// license
-	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit); err != nil {
+	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit, 0); err != nil {
 		print.Error("Init license failed", err)
 		return
 	}
@@ -84,35 +84,35 @@ func setupProject() {
 	bar := pb.StartNew(total)
 
 	// 1 - main gitignore
-	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
+	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore", 1); err != nil {
 		print.Error("Create main gitignore failed", err)
 		return
 	}
 	bar.Increment()
 
 	// 2 - golangci
-	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit, 2); err != nil {
 		print.Error("Create golangci config failed", err)
 		return
 	}
 	bar.Increment()
 
 	// 3 - travis ci
-	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit, 3); err != nil {
 		print.Error("Create travis file failed", err)
 		return
 	}
 	bar.Increment()
 
 	// 4 - readme
-	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit); err != nil {
+	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit, 4); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
 	bar.Increment()
 
 	// 5 - go mod
-	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit); err != nil {
+	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit, 5); err != nil {
 		print.Error("Create go mod failed", err)
 		return
 	}
@@ -127,22 +127,21 @@ func setupProject() {
 	bar.Increment()
 
 	// 8 - code
-	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
+	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit, 8); err != nil {
 		print.Error("Creating code base failed", err)
 		return
 	}
-	// TODO: service???
 	bar.Increment()
 
 	// 9 - scripts
-	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
+	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore, 9); err != nil {
 		print.Error("Create scripts failed", err)
 		return
 	}
 	bar.Increment()
 
 	// 10 - run goimports to import missing go packages and format code
-	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit); err != nil {
+	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit, 10); err != nil {
 		print.Error("Formatting code failed", err)
 		return
 	}

@@ -11,7 +11,7 @@ import (
 )
 
 // Init initialises the necessary scripts
-func Init(projectPath string, commitCallback git.CallbackAddAndCommit, ignoreCallback git.CallbackCreateIgnore) error {
+func Init(projectPath string, commitCallback git.CallbackAddAndCommit, ignoreCallback git.CallbackCreateIgnore, step int) error {
 	pattern := filepath.Join("./scripts/tmpl", "*", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -30,11 +30,11 @@ func Init(projectPath string, commitCallback git.CallbackAddAndCommit, ignoreCal
 		}
 	}
 
-	if err = commitCallback(getScripts().getFilenames(scriptPath), "added scripts"); err != nil {
+	if err = commitCallback(getScripts().getFilenames(scriptPath), "added scripts", step); err != nil {
 		return fmt.Errorf("failed to add and commit scripts: %s", err)
 	}
 
-	return createReportsFolder(projectPath, ignoreCallback)
+	return createReportsFolder(projectPath, ignoreCallback, step)
 }
 
 func createScript(filename string, tmpl *template.Template, tmplName string) error {

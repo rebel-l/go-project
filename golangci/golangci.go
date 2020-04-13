@@ -10,7 +10,7 @@ import (
 )
 
 // Init initialises the golangci
-func Init(projectPath string, commit git.CallbackAddAndCommit) error {
+func Init(projectPath string, commit git.CallbackAddAndCommit, step int) error {
 	pattern := filepath.Join("./golangci/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -30,5 +30,5 @@ func Init(projectPath string, commit git.CallbackAddAndCommit) error {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 
-	return commit([]string{filename}, "added config for golangci")
+	return commit([]string{filename}, "added config for golangci", step)
 }
