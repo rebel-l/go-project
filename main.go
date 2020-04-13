@@ -82,72 +82,73 @@ func setupProject() {
 		total++
 	}
 	bar := pb.StartNew(total)
-	// main gitignore
+
+	// 1 - main gitignore
 	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
 		print.Error("Create main gitignore failed", err)
 		return
 	}
 	bar.Increment()
 
-	// golangci
+	// 2 - golangci
 	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create golangci config failed", err)
 		return
 	}
 	bar.Increment()
 
-	// travis ci
+	// 3 - travis ci
 	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create travis file failed", err)
 		return
 	}
 	bar.Increment()
 
-	// readme
+	// 4 - readme
 	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
 	bar.Increment()
 
-	// go mod
+	// 5 - go mod
 	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit); err != nil {
 		print.Error("Create go mod failed", err)
 		return
 	}
 	bar.Increment()
 
-	// vagrant for docker
+	// 6 - vagrant for docker
 	// TODO
 	bar.Increment()
 
-	// docker
+	// 7 -  docker
 	// TODO
 	bar.Increment()
 
-	// code
+	// 8 - code
 	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
 		print.Error("Creating code base failed", err)
 		return
 	}
-	// TODO: service
+	// TODO: service???
 	bar.Increment()
 
-	// scripts
+	// 9 - scripts
 	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
 		print.Error("Create scripts failed", err)
 		return
 	}
 	bar.Increment()
 
-	// run goimports to import missing go packages and format code
+	// 10 - run goimports to import missing go packages and format code
 	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit); err != nil {
 		print.Error("Formatting code failed", err)
 		return
 	}
 	bar.Increment()
 
-	// final step: push to remote
+	// 11 - final step: push to remote
 	if !*pushToRemote {
 		if err := git.Finalize(destination.Get()); err != nil {
 			print.Error("Pushing to remote failed", err)
