@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/rebel-l/go-project/vagrant"
+
 	"github.com/fatih/color"
 
 	"gopkg.in/cheggaaa/pb.v1"
@@ -118,8 +120,13 @@ func setupProject() {
 	}
 	bar.Increment()
 
+	git.GetRemote()
+
 	// 6 - vagrant for docker
-	// TODO
+	if err := vagrant.Init(destination.Get(), cfg.Project, git.AddFilesAndCommit, 6); err != nil {
+		print.Error("Create vagrant file failed", err)
+		return
+	}
 	bar.Increment()
 
 	// 7 -  docker
