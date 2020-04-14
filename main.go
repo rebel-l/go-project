@@ -170,4 +170,5 @@ other TODO:
 1. exit with proper Exit Codes
 2. Fix: cyclomatic complexity 12 of function setupProject() is high (> 10) (gocyclo)
 3. Ensure templates are compiled in the binary created by `go install`
+4. Redesign: Use command pattern
 */

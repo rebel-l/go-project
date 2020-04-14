@@ -167,7 +167,7 @@ func createRemote() error {
 }
 
 func askForRemote() string {
-	t := prompt.Input("Enter the remote origin of your branch (leave empty to add it later by yourself): ", func(d prompt.Document) []prompt.Suggest {
+	t := prompt.Input("Enter the remote origin of your branch: ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	})
 
