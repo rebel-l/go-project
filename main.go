@@ -77,6 +77,7 @@ func main() {
 
 func setupProject() {
 	cfg := config.New(git.GetRemote(), description.Get(), git.GetAuthor())
+	vagrant.Prepare(cfg.Project)
 	fmt.Println()
 
 	total := 10
@@ -123,7 +124,7 @@ func setupProject() {
 	git.GetRemote()
 
 	// 6 - vagrant for docker
-	if err := vagrant.Init(destination.Get(), cfg.Project, git.AddFilesAndCommit, 6); err != nil {
+	if err := vagrant.Setup(destination.Get(), git.AddFilesAndCommit, 6); err != nil {
 		print.Error("Create vagrant file failed", err)
 		return
 	}

@@ -27,6 +27,10 @@ const (
 	templateKey     = "vagrantfile"
 )
 
+var (
+	params *Vagrant
+)
+
 type Vagrant struct {
 	ServiceName     string
 	IP              string
@@ -53,12 +57,22 @@ func newVagrant(project string, hostname string, domainPrefixes []string) *Vagra
 	}
 }
 
-func Init(path string, project string, commit git.CallbackAddAndCommit, step int) error {
+func Prepare(project string) {
+	if !confirmation() {
+		return
+	}
+
+	hostname := fmt.Sprintf(hostnamePattern, project)
+	domainPrefixes := askForDomainPrefixes(hostname)
+	params = newVagrant(project, hostname, domainPrefixes)
+}
+
+func Setup(path string, commit git.CallbackAddAndCommit, step int) error {
 	if kind.Get() != kind.Service {
 		return nil
 	}
 
-	if !confirmation() {
+	if params == nil {
 		return nil
 	}
 
@@ -82,10 +96,6 @@ func Init(path string, project string, commit git.CallbackAddAndCommit, step int
 		_ = file.Close()
 	}()
 
-	hostname := fmt.Sprintf(hostnamePattern, project)
-	domainPrefixes := getDomainPrefixes(hostname)
-	params := newVagrant(project, hostname, domainPrefixes)
-
 	if err = tmpl.ExecuteTemplate(file, templateKey, params); err != nil {
 		return err
 	}
@@ -93,7 +103,7 @@ func Init(path string, project string, commit git.CallbackAddAndCommit, step int
 	return commit([]string{filename}, "added Vagrantfile", step)
 }
 
-func confirmation() bool { // TODO: collect info before in config
+func confirmation() bool {
 	answer := "y"
 	t := prompt.Input("Add Vagrant to this project? [Y/n] ", func(d prompt.Document) []prompt.Suggest {
 		return prompt.FilterHasPrefix([]prompt.Suggest{}, d.GetWordBeforeCursor(), true)
@@ -106,7 +116,7 @@ func confirmation() bool { // TODO: collect info before in config
 	return strings.ToLower(answer) == "y"
 }
 
-func getDomainPrefixes(hostname string) []string { // TODO: collect info before in config
+func askForDomainPrefixes(hostname string) []string {
 	s := prompt.Input(
 		fmt.Sprintf("Add a list of subdomains (comma seperated list as prefixes for %s): ", hostname),
 		func(d prompt.Document) []prompt.Suggest {
