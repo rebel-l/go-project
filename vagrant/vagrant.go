@@ -9,26 +9,30 @@ import (
 
 	"github.com/c-bata/go-prompt"
 
-	"github.com/rebel-l/go-project/kind"
-
 	"github.com/rebel-l/go-project/git"
-	"github.com/rebel-l/go-project/lib/print"
+	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-utils/osutils"
 	"github.com/rebel-l/go-utils/rand"
 	goutil "github.com/rebel-l/go-utils/strings"
 )
 
 const (
-	fileName        = "Vagrantfile"
-	hostnamePattern = "%s.test"
-	ipPattern       = "192.168.%d.%d"
-	min             = 3
-	max             = 253
-	templateKey     = "vagrantfile"
+	fileNameBootstrap    = "vm/bootstrap.sh"
+	fileNameVagrant      = "Vagrantfile"
+	hostnamePattern      = "%s.test"
+	ipPattern            = "192.168.%d.%d"
+	min                  = 3
+	max                  = 253
+	templateKeyBootstrap = "bootstrap"
+	templateKeyVagrant   = "vagrantfile"
 )
 
 var (
 	params *Vagrant
+	files  = map[string]string{
+		templateKeyVagrant:   fileNameVagrant,
+		templateKeyBootstrap: fileNameBootstrap,
+	}
 )
 
 type Vagrant struct {
@@ -58,7 +62,7 @@ func newVagrant(project string, hostname string, domainPrefixes []string) *Vagra
 }
 
 func Prepare(project string) {
-	if !confirmation() {
+	if kind.Get() != kind.Service || !confirmation() {
 		return
 	}
 
@@ -68,17 +72,7 @@ func Prepare(project string) {
 }
 
 func Setup(path string, commit git.CallbackAddAndCommit, step int) error {
-	if kind.Get() != kind.Service {
-		return nil
-	}
-
 	if params == nil {
-		return nil
-	}
-
-	filename := filepath.Join(path, fileName)
-	if osutils.FileOrPathExists(filename) {
-		print.Info("Skip creating a vagrant file as it already exists")
 		return nil
 	}
 
@@ -88,19 +82,55 @@ func Setup(path string, commit git.CallbackAddAndCommit, step int) error {
 		return fmt.Errorf("failed to load templates: %s", err)
 	}
 
+	filenames, err := createFiles(path, tmpl)
+	if err != nil {
+		return err
+	}
+
+	return commit(filenames, "setup vagrant", step)
+}
+
+func createFiles(path string, tmpl *template.Template) ([]string, error) {
+	var fileList []string
+
+	for k, v := range files {
+		filename, err := createFile(path, tmpl, k, v)
+		if err != nil {
+			return nil, err
+		}
+
+		fileList = append(fileList, filename)
+	}
+
+	return fileList, nil
+}
+
+func createFile(path string, tmpl *template.Template, tmplKey string, filename string) (string, error) {
+	filename = filepath.Join(path, filename)
+	if osutils.FileOrPathExists(filename) {
+		return "", nil
+	}
+
+	subPath := filepath.Dir(filename)
+	if path != subPath {
+		if err := osutils.CreateDirectoryIfNotExists(subPath); err != nil {
+			return "", err
+		}
+	}
+
 	file, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("failed to create vagrant file: %s", err)
+		return "", fmt.Errorf("failed to create file %s: %w", filename, err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
-	if err = tmpl.ExecuteTemplate(file, templateKey, params); err != nil {
-		return err
+	if err = tmpl.ExecuteTemplate(file, tmplKey, params); err != nil {
+		return "", fmt.Errorf("failed to write template to file %s: %w", filename, err)
 	}
 
-	return commit([]string{filename}, "added Vagrantfile", step)
+	return filename, nil
 }
 
 func confirmation() bool {
