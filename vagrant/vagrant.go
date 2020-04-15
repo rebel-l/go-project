@@ -2,10 +2,10 @@ package vagrant
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
-	"text/template"
 
 	"github.com/c-bata/go-prompt"
 
@@ -22,8 +22,14 @@ const (
 	min             = 3
 	max             = 253
 
+	fileNameBashRC    = "vm/home/vagrant/.bashrc"
+	templateKeyBashRC = "bashrc"
+
 	fileNameBootstrap    = "vm/bootstrap.sh"
 	templateKeyBootstrap = "bootstrap"
+
+	fileNameProfile    = "vm/home/vagrant/.profile"
+	templateKeyProfile = "profile"
 
 	fileNameVagrant    = "Vagrantfile"
 	templateKeyVagrant = "vagrantfile"
@@ -34,6 +40,8 @@ var (
 	files  = map[string]string{
 		templateKeyVagrant:   fileNameVagrant,
 		templateKeyBootstrap: fileNameBootstrap,
+		templateKeyBashRC:    fileNameBashRC,
+		templateKeyProfile:   fileNameProfile,
 		// TODO: add other files
 	}
 )
