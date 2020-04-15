@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -22,28 +23,22 @@ const (
 	min             = 3
 	max             = 253
 
-	fileNameBashRC    = "vm/home/vagrant/.bashrc"
-	templateKeyBashRC = "bashrc"
+	templateKeyVagrant = "vagrantfile"
 
-	fileNameBootstrap    = "vm/bootstrap.sh"
 	templateKeyBootstrap = "bootstrap"
 
-	fileNameProfile    = "vm/home/vagrant/.profile"
+	templateKeyBashRC  = "bashrc"
 	templateKeyProfile = "profile"
 
-	fileNameVagrant    = "Vagrantfile"
-	templateKeyVagrant = "vagrantfile"
+	templateNginxDHParam                    = "nginxDHParam"
+	templateKeyNginxSiteConf                = "nginxSiteConf"
+	templateKeyNginxSnippetsCertificateConf = "nginxSnippetsCertificateConf"
+	templateKeyNginxSnippetsSSLParamsConf   = "nginxSnippetsSSLParamsConf"
+	templateKeyNginxSnippetsTrailingSlash   = "nginxSnippetsTrailingSlashConf"
 )
 
 var (
 	params *Vagrant
-	files  = map[string]string{
-		templateKeyVagrant:   fileNameVagrant,
-		templateKeyBootstrap: fileNameBootstrap,
-		templateKeyBashRC:    fileNameBashRC,
-		templateKeyProfile:   fileNameProfile,
-		// TODO: add other files
-	}
 )
 
 type Vagrant struct {
@@ -51,6 +46,28 @@ type Vagrant struct {
 	IP              string
 	Hostname        string
 	HostnameAliases []string
+}
+
+func (v *Vagrant) getFileConfig() map[string]string {
+	pathVM := "vm"
+
+	pathHome := path.Join(pathVM, "home", "vagrant")
+
+	pathNginx := path.Join(pathVM, "etc", "nginx")
+	pathNginxSiteConf := path.Join(pathNginx, "sites-available")
+	pathNginxSnippets := path.Join(pathNginx, "snippets")
+
+	return map[string]string{
+		templateKeyVagrant:                      "Vagrantfile",
+		templateKeyBootstrap:                    path.Join(pathVM, "bootstrap.sh"),
+		templateKeyBashRC:                       path.Join(pathHome, ".bashrc"),
+		templateKeyProfile:                      path.Join(pathHome, ".profile"),
+		templateNginxDHParam:                    path.Join(pathNginx, "dhparam.pem"),
+		templateKeyNginxSiteConf:                path.Join(pathNginxSiteConf, v.Hostname),
+		templateKeyNginxSnippetsCertificateConf: path.Join(pathNginxSnippets, fmt.Sprintf("%s-certificate.conf", v.Hostname)),
+		templateKeyNginxSnippetsSSLParamsConf:   path.Join(pathNginxSnippets, "ssl-params.conf"),
+		templateKeyNginxSnippetsTrailingSlash:   path.Join(pathNginxSnippets, "trailingslash.conf"),
+	}
 }
 
 func newVagrant(project string, hostname string, domainPrefixes []string) *Vagrant {
@@ -104,7 +121,7 @@ func Setup(path string, commit git.CallbackAddAndCommit, step int) error {
 func createFiles(path string, tmpl *template.Template) ([]string, error) {
 	var fileList []string
 
-	for k, v := range files {
+	for k, v := range params.getFileConfig() {
 		filename, err := createFile(path, tmpl, k, v)
 		if err != nil {
 			return nil, err

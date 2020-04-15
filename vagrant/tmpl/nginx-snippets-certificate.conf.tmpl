@@ -1,0 +1,3 @@
+{{define "nginxSnippetsCertificateConf"}}ssl_certificate /etc/ssl/certs/{{.Hostname}}.crt;
+ssl_certificate_key /etc/ssl/private/{{.Hostname}}.key;
+{{end}}
