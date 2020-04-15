@@ -17,14 +17,16 @@ import (
 )
 
 const (
+	hostnamePattern = "%s.test"
+	ipPattern       = "192.168.%d.%d"
+	min             = 3
+	max             = 253
+
 	fileNameBootstrap    = "vm/bootstrap.sh"
-	fileNameVagrant      = "Vagrantfile"
-	hostnamePattern      = "%s.test"
-	ipPattern            = "192.168.%d.%d"
-	min                  = 3
-	max                  = 253
 	templateKeyBootstrap = "bootstrap"
-	templateKeyVagrant   = "vagrantfile"
+
+	fileNameVagrant    = "Vagrantfile"
+	templateKeyVagrant = "vagrantfile"
 )
 
 var (
@@ -32,6 +34,7 @@ var (
 	files  = map[string]string{
 		templateKeyVagrant:   fileNameVagrant,
 		templateKeyBootstrap: fileNameBootstrap,
+		// TODO: add other files
 	}
 )
 
