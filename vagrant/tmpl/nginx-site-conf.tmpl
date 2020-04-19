@@ -7,7 +7,7 @@ server {
     include snippets/{{.Hostname}}-certificate.conf;
     include snippets/ssl-params.conf;
 
-    server_name www.{{.Hostname}};
+    server_name {{.Hostname}};
 
     # Avoid trailing slashes
     include snippets/trailingslash.conf;
@@ -27,26 +27,11 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name www.{{.Hostname}};
+    server_name {{.Hostname}};
 
     return 301 https://$server_name$request_uri;
 
     error_log /var/log/nginx/{{.Hostname}}_error.log "error";
     access_log  /var/log/nginx/{{.Hostname}}_access.log;
-}
-
-#
-# non-www to www redirect
-#
-server {
-    listen 80;
-    listen [::]:80;
-    listen 443 ssl;
-    listen [::]:443 ssl;
-
-    server_name {{.Hostname}};
-    return 301 https://www.$server_name$request_uri;
-    error_log /var/log/nginx/{{.Hostname}}_error.log "error";
-    access_log /var/log/nginx/{{.Hostname}}_access.log;
 }
 {{end}}
