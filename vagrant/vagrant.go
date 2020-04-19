@@ -2,19 +2,18 @@ package vagrant
 
 import (
 	"fmt"
-	"html/template"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/c-bata/go-prompt"
-
+	"github.com/rebel-l/go-project/dialog"
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/kind"
-	"github.com/rebel-l/go-utils/osutils"
+	"github.com/rebel-l/go-project/template"
 	"github.com/rebel-l/go-utils/rand"
 	goutil "github.com/rebel-l/go-utils/strings"
+
+	"github.com/c-bata/go-prompt"
 )
 
 const (
@@ -90,7 +89,7 @@ func newVagrant(project string, hostname string, domainPrefixes []string) *Vagra
 }
 
 func Prepare(project string) {
-	if kind.Get() != kind.Service || !confirmation() {
+	if kind.Get() != kind.Service || !dialog.Confirmation("Add Vagrant to this project?") {
 		return
 	}
 
@@ -105,73 +104,13 @@ func Setup(path string, commit git.CallbackAddAndCommit, step int) error {
 	}
 
 	pattern := filepath.Join("./vagrant/tmpl", "*.tmpl")
-	tmpl, err := template.ParseGlob(pattern)
-	if err != nil {
-		return fmt.Errorf("failed to load templates: %s", err)
-	}
 
-	filenames, err := createFiles(path, tmpl)
+	filenames, err := template.CreateFilesWithTemplatePath(pattern, path, params.getFileConfig(), params)
 	if err != nil {
-		return err
+		return fmt.Errorf("vagrant setup failed: %w", err)
 	}
 
 	return commit(filenames, "setup vagrant", step)
-}
-
-func createFiles(path string, tmpl *template.Template) ([]string, error) {
-	var fileList []string
-
-	for k, v := range params.getFileConfig() {
-		filename, err := createFile(path, tmpl, k, v)
-		if err != nil {
-			return nil, err
-		}
-
-		fileList = append(fileList, filename)
-	}
-
-	return fileList, nil
-}
-
-func createFile(path string, tmpl *template.Template, tmplKey string, filename string) (string, error) {
-	filename = filepath.Join(path, filename)
-	if osutils.FileOrPathExists(filename) {
-		return "", nil
-	}
-
-	subPath := filepath.Dir(filename)
-	if path != subPath {
-		if err := osutils.CreateDirectoryIfNotExists(subPath); err != nil {
-			return "", err
-		}
-	}
-
-	file, err := os.Create(filename)
-	if err != nil {
-		return "", fmt.Errorf("failed to create file %s: %w", filename, err)
-	}
-	defer func() {
-		_ = file.Close()
-	}()
-
-	if err = tmpl.ExecuteTemplate(file, tmplKey, params); err != nil {
-		return "", fmt.Errorf("failed to write template to file %s: %w", filename, err)
-	}
-
-	return filename, nil
-}
-
-func confirmation() bool {
-	answer := "y"
-	t := prompt.Input("Add Vagrant to this project? [Y/n] ", func(d prompt.Document) []prompt.Suggest {
-		return prompt.FilterHasPrefix([]prompt.Suggest{}, d.GetWordBeforeCursor(), true)
-	})
-
-	if t != "" {
-		answer = t
-	}
-
-	return strings.ToLower(answer) == "y"
 }
 
 func askForDomainPrefixes(hostname string) []string {

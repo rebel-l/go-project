@@ -1,0 +1,15 @@
+{{define "scriptRestart"}}#!/bin/bash
+
+BRANCH=`git rev-parse --abbrev-ref HEAD | sed -r 's/\/+/-/g'`
+
+# stop
+sudo docker stop {{.ServiceName}}
+sudo docker rm {{.ServiceName}}
+
+# build
+sudo docker build -t rebel1l/{{.ServiceName}}:$BRANCH .
+
+# start
+sudo docker run --name {{.ServiceName}} -d -it -p 8080:80 rebel1l/{{.ServiceName}}:$BRANCH
+sudo docker ps
+{{end}}

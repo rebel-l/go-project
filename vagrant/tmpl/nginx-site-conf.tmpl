@@ -13,7 +13,7 @@ server {
     include snippets/trailingslash.conf;
 
     location / {
-        proxy_pass http://localhost:8080/;
+        proxy_pass http://localhost:3000/;
     }
 
     error_log /var/log/nginx/{{.Hostname}}_error.log "error";

@@ -1,0 +1,12 @@
+{{define "Dockerfile"}}# Builder
+FROM golang:latest
+WORKDIR /usr/src/app
+COPY . .
+RUN go build
+
+# Service
+FROM ubuntu:latest
+WORKDIR /usr/service
+COPY --from=0 /usr/src/app/{{.ServiceName}} .
+CMD {{.ServiceName}}
+{{end}}
