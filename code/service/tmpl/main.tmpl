@@ -14,6 +14,7 @@ import (
 
 const (
     defaultPort = 3000
+    defaultTimeout = 15 * time.Second
 )
 
 var log logrus.FieldLogger
@@ -69,8 +70,8 @@ func initService() {
     srv := &http.Server{
         Handler:      router,
         Addr:         fmt.Sprintf(":%d", *port),
-        WriteTimeout: 15 * time.Second,
-        ReadTimeout:  15 * time.Second,
+        WriteTimeout: defaultTimeout,
+        ReadTimeout:  defaultTimeout,
     }
 
     var err error
