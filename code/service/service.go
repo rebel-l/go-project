@@ -31,7 +31,7 @@ func NewParameters(cfg config.Config, license license.License) Parameters {
 }
 
 // Create the basic files for a service
-func Create(projectPath string, params Parameters, commit git.CallbackAddAndCommit) error {
+func Create(projectPath string, params Parameters, commit git.CallbackAddAndCommit, step int) error {
 	pattern := filepath.Join("./code/service/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -61,7 +61,7 @@ func Create(projectPath string, params Parameters, commit git.CallbackAddAndComm
 		}
 	}
 
-	return commit(files, "added go base file for service")
+	return commit(files, "added go base file for service", step)
 }
 
 func ensurePath(projectPath, templateName string) error {

@@ -44,11 +44,7 @@ func printPath() {
 
 func confirmation() bool {
 	t := prompt.Input("Is this path correct? [y/N] ", func(d prompt.Document) []prompt.Suggest {
-		s := []prompt.Suggest{
-			{Text: "y", Description: "confirms directory is correct"},
-			{Text: "n", Description: "declines directory and let you choose the right one"},
-		}
-		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+		return prompt.FilterHasPrefix([]prompt.Suggest{}, d.GetWordBeforeCursor(), true)
 	})
 
 	return strings.ToLower(t) == "y"

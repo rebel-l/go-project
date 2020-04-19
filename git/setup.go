@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/tcnksm/go-gitconfig"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -165,7 +167,7 @@ func createRemote() error {
 }
 
 func askForRemote() string {
-	t := prompt.Input("Enter the remote origin of your branch (leave empty to add it later by yourself): ", func(d prompt.Document) []prompt.Suggest {
+	t := prompt.Input("Enter the remote origin of your branch: ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	})
 
@@ -173,13 +175,30 @@ func askForRemote() string {
 }
 
 func askForAuthor() *object.Signature {
-	name := prompt.Input("Enter your name (used as author in git and for license): ", func(d prompt.Document) []prompt.Suggest {
-		return []prompt.Suggest{}
-	})
+	name, _ := gitconfig.Username()
+	email, _ := gitconfig.Email()
 
-	email := prompt.Input("Enter your git email (used as author): ", func(d prompt.Document) []prompt.Suggest {
-		return []prompt.Suggest{}
-	})
+	nameNew := prompt.Input(
+		fmt.Sprintf("Enter your name (used as author in git and for license) or press enter to use '%s': ", name),
+		func(d prompt.Document) []prompt.Suggest {
+			return []prompt.Suggest{}
+		},
+	)
+
+	if nameNew != "" {
+		name = nameNew
+	}
+
+	emailNew := prompt.Input(
+		fmt.Sprintf("Enter your git email (used as author) or press enter to use '%s': ", email),
+		func(d prompt.Document) []prompt.Suggest {
+			return []prompt.Suggest{}
+		},
+	)
+
+	if emailNew != "" {
+		email = emailNew
+	}
 
 	return &object.Signature{Name: name, Email: email}
 }

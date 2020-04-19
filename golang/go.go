@@ -5,13 +5,13 @@ import (
 )
 
 // Init initialises go modules
-func Init(projectPath string, packageName string, commit git.CallbackAddAndCommit) error {
+func Init(projectPath string, packageName string, commit git.CallbackAddAndCommit, step int) error {
 	cmd := getGoModCommand(packageName)
 	cmd.Dir = projectPath
 	if err := cmd.Run(); err != nil {
 		return err
 	}
-	return commit([]string{"go.mod"}, "init go mod")
+	return commit([]string{"go.mod"}, "init go mod", step)
 }
 
 // CallbackGoGet defines the callback for go get

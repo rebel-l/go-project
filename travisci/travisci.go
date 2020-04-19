@@ -10,7 +10,7 @@ import (
 )
 
 // Init initialises travis ci
-func Init(projectPath string, commit git.CallbackAddAndCommit) error {
+func Init(projectPath string, commit git.CallbackAddAndCommit, step int) error {
 	pattern := filepath.Join("./travisci/tmpl", "*.tmpl")
 	tmpl, err := template.ParseGlob(pattern)
 	if err != nil {
@@ -30,5 +30,5 @@ func Init(projectPath string, commit git.CallbackAddAndCommit) error {
 		return fmt.Errorf("failed to parse template: %s", err)
 	}
 
-	return commit([]string{filename}, "setup travis")
+	return commit([]string{filename}, "setup travis", step)
 }

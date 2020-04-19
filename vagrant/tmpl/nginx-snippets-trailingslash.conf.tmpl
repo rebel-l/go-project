@@ -1,0 +1,3 @@
+{{define "nginxSnippetsTrailingSlashConf"}}# Avoid trailing slashes
+rewrite ^/(.*)/$ /$1 permanent;
+{{end}}

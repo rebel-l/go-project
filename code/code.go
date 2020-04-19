@@ -12,11 +12,21 @@ import (
 
 var goGetCallback golang.CallbackGoGet
 var commitCallback git.CallbackAddAndCommit
+var commitStep int
 
 // Init creates the code base files.
-func Init(projectKind string, projectPath string, cfg config.Config, license license.License, goGet golang.CallbackGoGet, commit git.CallbackAddAndCommit) error {
+func Init(
+	projectKind string,
+	projectPath string,
+	cfg config.Config,
+	license license.License,
+	goGet golang.CallbackGoGet,
+	commit git.CallbackAddAndCommit,
+	step int) error {
+
 	goGetCallback = goGet
 	commitCallback = commit
+	commitStep = step
 
 	var packages []string
 	var err error
@@ -24,12 +34,12 @@ func Init(projectKind string, projectPath string, cfg config.Config, license lic
 	switch projectKind {
 	case kind.Package:
 		params := pkg.NewParameters(cfg, license)
-		err = pkg.Create(projectPath, params, commit)
+		err = pkg.Create(projectPath, params, commit, commitStep)
 	case kind.Service:
 		packages = service.GetPackages().GetNames()
 		files = append(files, "go.sum")
 		params := service.NewParameters(cfg, license)
-		err = service.Create(projectPath, params, commit)
+		err = service.Create(projectPath, params, commit, commitStep)
 	}
 
 	if err != nil {
@@ -47,5 +57,5 @@ func addPackages(packages []string, projectPath string, files []string) error {
 		}
 	}
 
-	return commitCallback(files, "added go packages")
+	return commitCallback(files, "added go packages", commitStep)
 }

@@ -45,7 +45,7 @@ func (i Imports) Get() []string {
 }
 
 // GoImports executes imports missing packages and formats code with goimports command in the given path
-func GoImports(projectPath string, commit git.CallbackAddAndCommit) error {
+func GoImports(projectPath string, commit git.CallbackAddAndCommit, step int) error {
 	cmd := getGoImportsCommand(projectPath)
 	cmd.Dir = projectPath
 	if err := cmd.Run(); err != nil {
@@ -67,5 +67,5 @@ func GoImports(projectPath string, commit git.CallbackAddAndCommit) error {
 		return err
 	}
 
-	return commit(filenames, "adding missing imports and format code")
+	return commit(filenames, "adding missing imports and format code", step)
 }

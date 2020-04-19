@@ -4,6 +4,10 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/rebel-l/go-project/docker"
+
+	"github.com/rebel-l/go-project/vagrant"
+
 	"github.com/fatih/color"
 
 	"gopkg.in/cheggaaa/pb.v1"
@@ -53,7 +57,7 @@ func main() {
 	git.Setup(destination.Get(), kind.Get())
 
 	// license
-	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit); err != nil {
+	if err := license.Init(destination.Get(), git.GetAuthor().Name, description.Get(), git.AddFilesAndCommit, 0); err != nil {
 		print.Error("Init license failed", err)
 		return
 	}
@@ -75,6 +79,8 @@ func main() {
 
 func setupProject() {
 	cfg := config.New(git.GetRemote(), description.Get(), git.GetAuthor())
+	vagrant.Prepare(cfg.Project)
+	docker.Prepare(cfg.Project)
 	fmt.Println()
 
 	total := 10
@@ -82,72 +88,80 @@ func setupProject() {
 		total++
 	}
 	bar := pb.StartNew(total)
-	// main gitignore
-	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore"); err != nil {
+
+	// 1 - main gitignore
+	if err := git.CreateIgnore(destination.Get(), git.IgnoreMain, "main gitignore", 1); err != nil {
 		print.Error("Create main gitignore failed", err)
 		return
 	}
 	bar.Increment()
 
-	// golangci
-	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+	// 2 - golangci
+	if err := golangci.Init(destination.Get(), git.AddFilesAndCommit, 2); err != nil {
 		print.Error("Create golangci config failed", err)
 		return
 	}
 	bar.Increment()
 
-	// travis ci
-	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+	// 3 - travis ci
+	if err := travisci.Init(destination.Get(), git.AddFilesAndCommit, 3); err != nil {
 		print.Error("Create travis file failed", err)
 		return
 	}
 	bar.Increment()
 
-	// readme
-	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit); err != nil {
+	// 4 - readme
+	if err := readme.Init(destination.Get(), cfg, license.Get(), git.AddFilesAndCommit, 4); err != nil {
 		print.Error("Create readme failed", err)
 		return
 	}
 	bar.Increment()
 
-	// go mod
-	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit); err != nil {
+	// 5 - go mod
+	if err := golang.Init(destination.Get(), cfg.GetPackage(), git.AddFilesAndCommit, 5); err != nil {
 		print.Error("Create go mod failed", err)
 		return
 	}
 	bar.Increment()
 
-	// vagrant for docker
-	// TODO
+	git.GetRemote()
+
+	// 6 - vagrant for docker
+	if err := vagrant.Setup(destination.Get(), git.AddFilesAndCommit, 6); err != nil {
+		print.Error("Create vagrant failed", err)
+		return
+	}
 	bar.Increment()
 
-	// docker
-	// TODO
+	// 7 -  docker
+	if err := docker.Setup(destination.Get(), git.AddFilesAndCommit, 7); err != nil {
+		print.Error("Create docker failed", err)
+		return
+	}
 	bar.Increment()
 
-	// code
-	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit); err != nil {
+	// 8 - code
+	if err := code.Init(kind.Get(), destination.Get(), cfg, license.Get(), golang.Get, git.AddFilesAndCommit, 8); err != nil {
 		print.Error("Creating code base failed", err)
 		return
 	}
-	// TODO: service
 	bar.Increment()
 
-	// scripts
-	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore); err != nil {
+	// 9 - scripts
+	if err := scripts.Init(destination.Get(), git.AddFilesAndCommit, git.CreateIgnore, 9); err != nil {
 		print.Error("Create scripts failed", err)
 		return
 	}
 	bar.Increment()
 
-	// run goimports to import missing go packages and format code
-	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit); err != nil {
+	// 10 - run goimports to import missing go packages and format code
+	if err := golang.GoImports(destination.Get(), git.AddFilesAndCommit, 10); err != nil {
 		print.Error("Formatting code failed", err)
 		return
 	}
 	bar.Increment()
 
-	// final step: push to remote
+	// 11 - final step: push to remote
 	if !*pushToRemote {
 		if err := git.Finalize(destination.Get()); err != nil {
 			print.Error("Pushing to remote failed", err)
@@ -163,4 +177,5 @@ other TODO:
 1. exit with proper Exit Codes
 2. Fix: cyclomatic complexity 12 of function setupProject() is high (> 10) (gocyclo)
 3. Ensure templates are compiled in the binary created by `go install`
+4. Redesign: Use command pattern
 */
