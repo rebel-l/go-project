@@ -83,11 +83,11 @@ func initService() {
 
 func initRoutes() error {
     if err := initDefaultRoutes(); err != nil {
-        return fmt.Errorf("default routes failed: %s", err)
+        return fmt.Errorf("default routes failed: %w", err)
     }
 
     if err := initCustomRoutes(); err != nil {
-        return fmt.Errorf("custom routes failed: %s", err)
+        return fmt.Errorf("custom routes failed: %w", err)
     }
 
     return nil
