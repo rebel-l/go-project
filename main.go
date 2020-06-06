@@ -12,7 +12,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"gopkg.in/cheggaaa/pb.v1"
+	"github.com/cheggaaa/pb/v3"
 
 	"github.com/rebel-l/go-project/code"
 	"github.com/rebel-l/go-project/description"
