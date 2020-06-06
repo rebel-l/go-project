@@ -1,8 +1,17 @@
 package model
 
-import "fmt"
-
 func Init(path string) error {
-	fmt.Println("LETS GO!")
-	return nil
+	m := NewModel(path)
+
+	g := getGenerators()
+
+	return g.Generate(m)
+}
+
+func getGenerators() Generators {
+	var g Generators
+
+	g = append(g, &SQL{})
+
+	return g
 }
