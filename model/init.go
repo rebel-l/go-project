@@ -1,17 +1,25 @@
 package model
 
+import "fmt"
+
 func Init(path string) error {
 	m := NewModel(path)
+	m.AddField()
 
-	g := getGenerators()
+	fmt.Printf("%#v\n", m)
+	fmt.Printf("%#v\n", m.attributes)
+
+	g := getGenerators(path)
+
+	fmt.Println()
 
 	return g.Generate(m)
 }
 
-func getGenerators() Generators {
+func getGenerators(path string) Generators {
 	var g Generators
 
-	g = append(g, &SQL{})
+	g = append(g, &sql{rootPath: path})
 
 	return g
 }

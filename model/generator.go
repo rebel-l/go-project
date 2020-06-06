@@ -5,12 +5,12 @@ import (
 )
 
 type Generator interface {
-	Generate(m Model) error
+	Generate(m *model) error
 }
 
 type Generators []Generator
 
-func (g Generators) Generate(m Model) error {
+func (g Generators) Generate(m *model) error {
 	bar := pb.StartNew(len(g))
 	for _, v := range g {
 		bar.Increment()

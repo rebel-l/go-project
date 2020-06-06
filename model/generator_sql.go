@@ -4,9 +4,11 @@ import (
 	"fmt"
 )
 
-type SQL struct{}
+type sql struct {
+	rootPath string
+}
 
-func (s *SQL) Generate(m Model) error {
+func (s *sql) Generate(m *model) error {
 	fmt.Println("CREATE SQL Script")
 	return nil
 }
