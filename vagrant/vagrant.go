@@ -10,8 +10,8 @@ import (
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/kind"
 	"github.com/rebel-l/go-project/template"
-	"github.com/rebel-l/go-utils/rand"
-	goutil "github.com/rebel-l/go-utils/strings"
+	"github.com/rebel-l/go-utils/randutils"
+	"github.com/rebel-l/go-utils/stringsutils"
 
 	"github.com/c-bata/go-prompt"
 )
@@ -82,7 +82,7 @@ func newVagrant(project string, hostname string, domainPrefixes []string) *Vagra
 
 	return &Vagrant{
 		ServiceName:     strings.Join(projectParts, ""),
-		IP:              fmt.Sprintf(ipPattern, rand.Int(min, max), rand.Int(min, max)),
+		IP:              fmt.Sprintf(ipPattern, randutils.Int(min, max), randutils.Int(min, max)),
 		Hostname:        hostname,
 		HostnameAliases: hostnameAliases,
 	}
@@ -121,5 +121,5 @@ func askForDomainPrefixes(hostname string) []string {
 		},
 	)
 
-	return goutil.SplitTrimSpace(s, ",")
+	return stringsutils.SplitTrimSpace(s, ",")
 }
