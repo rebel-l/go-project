@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/rebel-l/go-project/model"
+
 	"github.com/rebel-l/go-project/docker"
 
 	"github.com/rebel-l/go-project/vagrant"
@@ -27,11 +29,15 @@ import (
 	"github.com/rebel-l/go-project/travisci"
 )
 
-var pushToRemote *bool
+var (
+	pushToRemote *bool
+	createModel  *bool
+)
 
 func main() {
 	// setup parameters
 	pushToRemote = flag.Bool("nopush", false, "avoids pushing to remote origin which is helpful for development")
+	createModel = flag.Bool("model", false, "creates a new database model for an existing go project")
 	flag.Parse()
 
 	// introduction
@@ -46,6 +52,13 @@ func main() {
 		return
 	}
 	fmt.Println()
+
+	if *createModel {
+		if err := model.Init(destination.Get()); err != nil {
+			print.Error("create model failed", err)
+		}
+		return
+	}
 
 	// project kind & description
 	kind.Init()
