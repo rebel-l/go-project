@@ -1,0 +1,10 @@
+{{define "sqlite"}}{{$elems := .Attributes}}-- up
+CREATE TABLE IF NOT EXISTS {{.Name | ToLower}}s (
+{{- range $index, $elem := $elems}}
+    {{$elem | SqliteField}}{{if not ($elems.Last $index)}},{{end}}
+{{- end}}
+);
+
+-- down
+DROP TABLE IF EXISTS {{.Name | ToLower}}s;
+{{end}}

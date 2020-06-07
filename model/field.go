@@ -23,28 +23,32 @@ const (
 
 type fields []*field
 
+func (f fields) Last(index int) bool {
+	return index >= len(f)-1
+}
+
 type field struct {
-	name         string
-	primaryKey   bool
-	fieldType    string
-	defaultValue string
-	maxLength    int
-	nullable     bool
-	unique       bool
+	Name         string
+	PrimaryKey   bool
+	FieldType    string
+	DefaultValue string
+	MaxLength    int
+	Nullable     bool
+	Unique       bool
 }
 
 func NewField() *field {
 	f := &field{}
 
 	f.setName()
-	if f.name == "" {
+	if f.Name == "" {
 		return f
 	}
 
 	f.setFieldType()
-	f.setDefaultValue()
 	f.setMaxLength()
 	f.setUnique()
+	f.setDefaultValue()
 	f.setNullable()
 
 	return f
@@ -57,10 +61,10 @@ func (f *field) setName() {
 
 	n = strings.TrimSpace(n)
 	if strings.ToLower(n) == "id" {
-		f.primaryKey = true
-		f.name = strings.ToUpper(n)
+		f.PrimaryKey = true
+		f.Name = strings.ToUpper(n)
 	} else {
-		f.name = strings.Title(n)
+		f.Name = strings.Title(n)
 	}
 }
 
@@ -86,21 +90,21 @@ func (f *field) setFieldType() {
 		f.setFieldType()
 	}
 
-	f.fieldType = t
+	f.FieldType = t
 }
 
 func (f *field) setDefaultValue() {
-	if f.primaryKey {
+	if f.PrimaryKey || f.Unique {
 		return
 	}
 
-	f.defaultValue = prompt.Input("enter the default value of the field > ", func(d prompt.Document) []prompt.Suggest {
+	f.DefaultValue = prompt.Input("enter the default value of the field > ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	}, prompt.OptionInputTextColor(prompt.Yellow))
 }
 
 func (f *field) setNullable() {
-	if f.primaryKey || f.unique {
+	if f.PrimaryKey || f.Unique {
 		return
 	}
 
@@ -109,12 +113,12 @@ func (f *field) setNullable() {
 	}, prompt.OptionInputTextColor(prompt.Yellow))
 
 	if strings.TrimSpace(strings.ToLower(n)) == "y" {
-		f.nullable = true
+		f.Nullable = true
 	}
 }
 
 func (f *field) setUnique() {
-	if f.primaryKey {
+	if f.PrimaryKey {
 		return
 	}
 
@@ -123,12 +127,12 @@ func (f *field) setUnique() {
 	}, prompt.OptionInputTextColor(prompt.Yellow))
 
 	if strings.TrimSpace(strings.ToLower(n)) == "y" {
-		f.unique = true
+		f.Unique = true
 	}
 }
 
 func (f *field) setMaxLength() {
-	if f.fieldType != fieldTypeString {
+	if f.FieldType != fieldTypeString {
 		return
 	}
 
@@ -137,7 +141,7 @@ func (f *field) setMaxLength() {
 	}, prompt.OptionInputTextColor(prompt.Yellow))
 
 	var err error
-	f.maxLength, err = strconv.Atoi(l)
+	f.MaxLength, err = strconv.Atoi(l)
 	if err != nil {
 		print.Error("maximum length must be a valid integer", err)
 		f.setMaxLength()

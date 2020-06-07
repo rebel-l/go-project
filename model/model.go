@@ -10,9 +10,9 @@ import (
 )
 
 type model struct {
-	name            string
-	attributes      fields
-	destinationPath string
+	Name            string
+	Attributes      fields
+	destinationPath string // TODO: maybe not needed
 }
 
 //func (m model) createStoreLayer() error {
@@ -43,7 +43,7 @@ func NewModel(rootPath string) *model {
 	}
 
 	return &model{
-		name:            n,
+		Name:            n,
 		destinationPath: path.Join(rootPath, n),
 	}
 }
@@ -52,10 +52,10 @@ func (m *model) AddField() {
 	fmt.Println()
 	fmt.Println("Add a new field to your model ... leave name empty as you declared all fields")
 	f := NewField()
-	if f.name == "" {
+	if f.Name == "" {
 		return
 	}
 
-	m.attributes = append(m.attributes, f)
+	m.Attributes = append(m.Attributes, f)
 	m.AddField()
 }

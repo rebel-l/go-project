@@ -6,9 +6,6 @@ func Init(path string) error {
 	m := NewModel(path)
 	m.AddField()
 
-	fmt.Printf("%#v\n", m)
-	fmt.Printf("%#v\n", m.attributes)
-
 	g := getGenerators(path)
 
 	fmt.Println()
