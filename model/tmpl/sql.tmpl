@@ -1,10 +1,27 @@
-{{define "sqlite"}}{{$elems := .Attributes}}-- up
+{{define "sqlite"}}{{$elems := .Attributes}}{{$model := .}}-- up
 CREATE TABLE IF NOT EXISTS {{.Name | ToLower}}s (
 {{- range $index, $elem := $elems}}
-    {{$elem | SqliteField}}{{if not ($elems.Last $index)}},{{end}}
+    {{$elem | SqliteField}},
 {{- end}}
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+{{- range $index, $elem := $elems}}{{if $elem.Unique}}
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_{{$model.Name | ToLower}}s_{{$elem.Name | ToLower}} ON {{$model.Name | ToLower}}s ({{$elem.Name | ToLower}});
+{{end}}{{- end}}
+
+CREATE TRIGGER IF NOT EXISTS {{.Name | ToLower}}s_after_update AFTER UPDATE ON {{.Name | ToLower}}s BEGIN
+    UPDATE {{.Name | ToLower}}s SET modified_at = DATETIME('now') WHERE id = NEW.id;
+end;
+
+
 -- down
+{{- range $index, $elem := $elems}}{{if $elem.Unique}}
+DROP INDEX IF EXISTS idx_{{$model.Name | ToLower}}s_{{$elem.Name | ToLower}};
+{{end}}{{- end}}
+DROP TRIGGER IF EXISTS {{.Name | ToLower}}s_after_update;
+
 DROP TABLE IF EXISTS {{.Name | ToLower}}s;
 {{end}}
