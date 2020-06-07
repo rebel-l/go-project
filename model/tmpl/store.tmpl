@@ -1,0 +1,515 @@
+{{define "package.go"}}// Package {{.Name | ToLower}}store contains the CRUD operations for the {{.Name | ToLower}}s on the database
+package {{.Name | ToLower}}store
+{{end}}
+
+{{define "store.go"}}package {{.Name | ToLower}}store
+
+import (
+    "context"
+    "errors"
+    "time"
+
+    "github.com/jmoiron/sqlx"
+)
+
+var (
+    // TODO: move that to central place, e.g. libs/store
+    // ErrIDMissing will be thrown if an ID is expected but not set
+    ErrIDMissing = errors.New("id is mandatory for this operation")
+
+    // ErrIDIsSet will be thrown if no ID is expected but already set
+    ErrIDIsSet = errors.New("id should be not set for this operation, use update instead")
+
+    // ErrDataMissing will be thrown if mandatory data is not set
+    ErrDataMissing = errors.New("no data or mandatory data missing")
+)
+
+// {{.Name}} represents the {{.Name | ToLower}} in the database
+type {{.Name}} struct {
+    // TODO: iterate over fields
+    ID         int       `db:"id"`
+    Name       string    `db:"name"`
+    URL        string    `db:"url"`
+    CreatedAt  time.Time `db:"created_at"`
+    ModifiedAt time.Time `db:"modified_at"`
+}
+
+// Create creates current object in the database
+func (r *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {
+    if !r.IsValid() {
+        return ErrDataMissing
+    }
+
+    if r.ID != 0 {
+        return ErrIDIsSet
+    }
+
+    q := db.Rebind(`INSERT INTO {{.Name | ToLower}}s (name, url) VALUES (?, ?)`)    // TODO: iterate over fields
+
+    res, err := db.ExecContext(ctx, q, r.Name, r.URL) // TODO: iterate over fields
+    if err != nil {
+        return err
+    }
+
+    id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+
+    r.ID = int(id)
+
+    return r.Read(ctx, db)
+}
+
+// Read sets the {{.Name | ToLower}} from database by given ID
+func (r *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error {
+    if r == nil || r.ID == 0 {
+        return ErrIDMissing
+    }
+
+    q := db.Rebind(`SELECT * FROM {{.Name | ToLower}}s WHERE id = ?`)
+
+    return db.GetContext(ctx, r, q, r.ID)
+}
+
+// Update changes the current object on the database by ID
+func (r *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) error {
+    if !r.IsValid() {
+        return ErrDataMissing
+    }
+
+    if r.ID == 0 {
+        return ErrIDMissing
+    }
+
+    q := db.Rebind(`UPDATE {{.Name | ToLower}}s SET name = ?, url = ? WHERE id = ?`)    // TODO: iterate over fields
+
+    if _, err := db.ExecContext(ctx, q, r.Name, r.URL, r.ID); err != nil {
+        return err
+    }
+
+    return r.Read(ctx, db)
+}
+
+// Delete removes the current object from database by its ID
+func (r *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) error {
+    if r == nil || r.ID == 0 {
+        return ErrIDMissing
+    }
+
+    q := db.Rebind(`DELETE FROM {{.Name | ToLower}}s WHERE id = ?`)
+
+    _, err := db.ExecContext(ctx, q, r.ID)
+
+    return err
+}
+
+// IsValid returns true if all mandatory fields are set
+func (r *{{.Name}}) IsValid() bool {
+    if r == nil || r.Name == "" || r.URL == "" {
+        return false
+    }
+
+    return true
+}
+{{end}}
+
+{{define "store_test.go"}}package {{.Name | ToLower}}store_test
+
+import (
+    "context"
+    "database/sql"
+    "errors"
+    "os"
+    "path/filepath"
+    "testing"
+    "time"
+
+    "github.com/jmoiron/sqlx"
+    _ "github.com/mattn/go-sqlite3"
+
+    // "github.com/rebel-l/branma_be/{{.Name | ToLower}}/{{.Name | ToLower}}store" // TODO: goimports is doing the job?
+    "github.com/rebel-l/go-utils/osutils"
+)
+
+func setup(t *testing.T, name string) *sqlx.DB {
+    t.Helper()
+
+    // 0. init path
+    storagePath := filepath.Join(".", "..", "..", "storage", "test_{{.Name | ToLower}}", name)
+    scriptPath := filepath.Join(".", "..", "..", "scripts", "schema")
+    conf := &config.Database{   // TODO: where does it come from?
+        StoragePath:       &storagePath,
+        SchemaScriptsPath: &scriptPath,
+    }
+
+    // 1. clean up
+    if osutils.FileOrPathExists(conf.GetStoragePath()) {
+        if err := os.RemoveAll(conf.GetStoragePath()); err != nil {
+            t.Fatalf("failed to cleanup test files: %v", err)
+        }
+    }
+
+    // 2. init database
+    db, err := bootstrap.Database(conf, "0.0.0")
+    if err != nil {
+        t.Fatalf("No error expected: %v", err)
+    }
+
+    return db
+}
+
+func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "storeCreate")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        actual      *{{.Name | ToLower}}store.{{.Name}}
+        expected    *{{.Name | ToLower}}store.{{.Name}}
+        expectedErr error
+    }{
+        {
+            name:        "{{.Name | ToLower}} is nil",
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no name",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{URL: "myurl"},
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no url",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname"},
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has ID",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
+            expectedErr: {{.Name | ToLower}}store.ErrIDIsSet,
+        },
+        {
+            name:     "success",
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
+            expected: &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
+        },
+        {
+            name:        "duplicate",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
+            expectedErr: errors.New("UNIQUE constraint failed: repositories.url, repositories.name"),
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            err := testCase.actual.Create(context.Background(), db)
+            checkErrors(t, testCase.expectedErr, err)
+            test{{.Name}}(t, testCase.expected, testCase.actual)
+        })
+    }
+}
+
+func Test{{.Name}}_Read(t *testing.T) {
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "storeRead")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        prepare     *{{.Name | ToLower}}store.{{.Name}}
+        actual      *{{.Name | ToLower}}store.{{.Name}}
+        expected    *{{.Name | ToLower}}store.{{.Name}}
+        expectedErr error
+    }{
+        {
+            name:        "{{.Name | ToLower}} is nil",
+            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
+        },
+        {
+            name:        "ID not set",
+            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{},
+        },
+        {
+            name:     "success",
+            prepare:  &{{.Name | ToLower}}store.{{.Name}}{Name: "project", URL: "myproject.git"},
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 1},
+            expected: &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "project", URL: "myproject.git"},
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            if testCase.prepare != nil {
+            _ = testCase.prepare.Create(context.Background(), db)
+            }
+
+            err := testCase.actual.Read(context.Background(), db)
+            checkErrors(t, testCase.expectedErr, err)
+            test{{.Name}}(t, testCase.expected, testCase.actual)
+        })
+    }
+}
+
+func test{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{.Name}}) {
+    t.Helper()
+
+    if expected == nil && actual == nil {
+        return
+    }
+
+    if expected != nil && actual == nil || expected == nil && actual != nil {
+        return
+    }
+
+    if expected.ID != actual.ID {
+        t.Errorf("expected ID %d but got %d", expected.ID, actual.ID)
+    }
+
+    if expected.Name != actual.Name {
+        t.Errorf("expectade name '%s' but got '%s'", expected.Name, actual.Name)
+    }
+
+    if expected.URL != actual.URL {
+        t.Errorf("expectade url '%s' but got '%s'", expected.URL, actual.URL)
+    }
+
+    if actual.CreatedAt.IsZero() {
+        t.Error("created at should be greater than the zero date")
+    }
+
+    if actual.ModifiedAt.IsZero() {
+        t.Error("modified at should be greater than the zero date")
+    }
+}
+
+func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "storeUpdate")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        prepare     *{{.Name | ToLower}}store.{{.Name}}
+        actual      *{{.Name | ToLower}}store.{{.Name}}
+        expected    *{{.Name | ToLower}}store.{{.Name}}
+        expectedErr error
+    }{
+        {
+            name:        "{{.Name | ToLower}} is nil",
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no name",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, URL: "myurl"},
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no url",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname"},
+            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no ID",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
+            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
+        },
+        {
+            name:     "success",
+            prepare:  &{{.Name | ToLower}}store.{{.Name}}{Name: "init name", URL: "init url"},
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
+            expected: &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
+        },
+        {
+            name:        "not existing {{.Name | ToLower}}",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 2, Name: "myname", URL: "myurl"},
+            expectedErr: sql.ErrNoRows,
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            if testCase.prepare != nil {
+                _ = testCase.prepare.Create(context.Background(), db)
+                time.Sleep(1 * time.Second)
+            }
+
+            err := testCase.actual.Update(context.Background(), db)
+            checkErrors(t, testCase.expectedErr, err)
+            test{{.Name}}(t, testCase.expected, testCase.actual)
+
+            if testCase.prepare != nil && testCase.actual != nil {
+                if testCase.prepare.CreatedAt != testCase.actual.CreatedAt {
+                    t.Errorf(
+                        "expected created at '%s' but got '%s'",
+                        testCase.prepare.CreatedAt.String(),
+                        testCase.actual.CreatedAt.String(),
+                    )
+                }
+
+                if testCase.prepare.ModifiedAt.After(testCase.actual.ModifiedAt) {
+                    t.Errorf(
+                        "expected modified at '%s' to be before but got '%s'",
+                        testCase.prepare.ModifiedAt.String(),
+                        testCase.actual.ModifiedAt.String(),
+                    )
+                }
+            }
+        })
+    }
+}
+
+func Test{{.Name}}_Delete(t *testing.T) {
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "storeDelete")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        prepare     *{{.Name | ToLower}}store.{{.Name}}
+        actual      *{{.Name | ToLower}}store.{{.Name}}
+        expectedErr error
+    }{
+        {
+            name:        "{{.Name | ToLower}} is nil",
+            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
+        },
+        {
+            name:        "{{.Name | ToLower}} has no ID",
+            actual:      &{{.Name | ToLower}}store.{{.Name}}{},
+            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
+        },
+        {
+            name:    "success",
+            prepare: &{{.Name | ToLower}}store.{{.Name}}{Name: "init name", URL: "init url"},
+            actual:  &{{.Name | ToLower}}store.{{.Name}}{ID: 1},
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            var id int
+            if testCase.prepare != nil {
+                err := testCase.prepare.Create(context.Background(), db)
+                if err != nil {
+                    t.Errorf("preparation failed: %v", err)
+                    return
+                }
+                id = testCase.prepare.ID
+            }
+
+            err := testCase.actual.Delete(context.Background(), db)
+            checkErrors(t, testCase.expectedErr, err)
+
+            if id > 0 {
+                testCase.actual = &{{.Name | ToLower}}store.{{.Name}}{ID: id}
+                    err := testCase.actual.Read(context.Background(), db)
+                    if !errors.Is(err, sql.ErrNoRows) {
+                        t.Errorf("expected error '%v' after deletion but got '%v'", sql.ErrNoRows, err)
+                    }
+            }
+        })
+    }
+}
+
+func Test{{.Name}}_IsValid(t *testing.T) {
+    testCases := []struct {
+        name     string
+        actual   *{{.Name | ToLower}}store.{{.Name}}
+        expected bool
+    }{
+        {
+            name:     "{{.Name | ToLower}} is nil",
+            expected: false,
+        },
+        {
+            name:     "only id is set",
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123},
+            expected: false,
+        },
+        {
+            name:     "name missing",
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, URL: "test"},
+            expected: false,
+        },
+        {
+            name:     "url missing",
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, Name: "test"},
+            expected: false,
+        },
+        {
+            name:     "all data",
+            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, Name: "test", URL: "test"},
+            expected: true,
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            res := testCase.actual.IsValid()
+            if testCase.expected != res {
+                t.Errorf("expected %t but got %t", testCase.expected, res)
+            }
+        })
+    }
+}
+
+func checkErrors(t *testing.T, expected, actual error) {
+    t.Helper()
+
+    if errors.Is(actual, expected) {
+        return
+    }
+
+    if expected != nil && actual != nil {
+        if expected.Error() != actual.Error() {
+            t.Errorf("expected error '%v' but got '%v'", expected, actual)
+        }
+
+        return
+    }
+
+    t.Errorf("expected error '%v' but got '%v'", expected, actual)
+}
+{{end}}
