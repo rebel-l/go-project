@@ -41,10 +41,6 @@ func (f *field) GetGoFieldType() string {
 	return f.FieldType
 }
 
-func (f *field) GetStoreField() string {
-	return fmt.Sprintf("%s	%s	`db:\"%s\"`", f.Name, f.GetGoFieldType(), f.GetSQlFieldName())
-}
-
 type field struct {
 	Name         string
 	PrimaryKey   bool
@@ -53,6 +49,10 @@ type field struct {
 	MaxLength    int
 	Nullable     bool
 	Unique       bool
+}
+
+func (f *field) GetStoreField() string {
+	return fmt.Sprintf("%s	%s	`db:\"%s\"`", f.Name, f.GetGoFieldType(), f.GetSQlFieldName())
 }
 
 func (f *field) GetSQlFieldName() string {
