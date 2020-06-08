@@ -70,7 +70,7 @@ func (f *field) setName() {
 
 func (f *field) setFieldType() {
 	fieldTypes := getPossibleFieldTypes()
-	t := prompt.Input("enter the the type of the field > ", func(d prompt.Document) []prompt.Suggest {
+	t := prompt.Input("enter the type of the field > ", func(d prompt.Document) []prompt.Suggest {
 		s := options.GetSuggestions(fieldTypes)
 		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 	}, prompt.OptionInputTextColor(prompt.Yellow))
