@@ -59,6 +59,52 @@ func (f *field) GetSQlFieldName() string {
 	return strings.ToLower(f.Name) // TODO: CamelCase to snake_case
 }
 
+func (f *field) GetSQLField() string { // TODO: support sql dialect ... maybe with parameter
+	line := strings.ToLower(f.Name)
+
+	switch f.FieldType {
+	case fieldTypeUUID:
+		line += " CHAR(36)"
+	case fieldTypeString:
+		line += fmt.Sprintf(" VARCHAR(%d)", f.MaxLength)
+	case fieldTypeBool,
+		fieldTypeInt:
+		line += " INTEGER"
+	case fieldTypeFloat:
+		line += " REAL"
+	case fieldTypeTime:
+		line += " DATETIME"
+	}
+
+	if !f.Nullable {
+		line += " NOT NULL"
+	}
+
+	if f.DefaultValue != "" {
+		switch f.FieldType {
+		case fieldTypeString:
+			line += fmt.Sprintf(" DEFAULT '%s'", f.DefaultValue)
+		case fieldTypeBool:
+			if strings.ToLower(f.DefaultValue) == "true" {
+				line += " DEFAULT 1"
+			} else {
+				line += " DEFAULT 0"
+			}
+		default:
+			line += fmt.Sprintf(" DEFAULT %s", f.DefaultValue)
+		}
+	}
+
+	if f.PrimaryKey {
+		line += " PRIMARY KEY"
+		if f.FieldType == fieldTypeInt {
+			line += " AUTOINCREMENT"
+		}
+	}
+
+	return line
+}
+
 func NewField() *field {
 	f := &field{}
 
