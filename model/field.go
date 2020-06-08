@@ -23,8 +23,26 @@ const (
 
 type fields []*field
 
-func (f fields) IsLast(index int) bool {
-	return index >= len(f)-1
+func (f fields) GetSQLFieldNames() string {
+	var fieldNames []string
+
+	for _, v := range f {
+		fieldNames = append(fieldNames, v.GetSQlFieldName())
+	}
+
+	return strings.Join(fieldNames, ", ")
+}
+
+func (f *field) GetGoFieldType() string {
+	if f.FieldType == fieldTypeUUID {
+		return "uuid.UUID"
+	}
+
+	return f.FieldType
+}
+
+func (f *field) GetStoreField() string {
+	return fmt.Sprintf("%s	%s	`db:\"%s\"`", f.Name, f.GetGoFieldType(), f.GetSQlFieldName())
 }
 
 type field struct {
@@ -35,6 +53,10 @@ type field struct {
 	MaxLength    int
 	Nullable     bool
 	Unique       bool
+}
+
+func (f *field) GetSQlFieldName() string {
+	return strings.ToLower(f.Name) // TODO: CamelCase to snake_case
 }
 
 func NewField() *field {

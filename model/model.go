@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/c-bata/go-prompt"
+
 	"github.com/rebel-l/go-project/lib/print"
 )
 
@@ -58,4 +59,22 @@ func (m *model) AddField() {
 
 	m.Attributes = append(m.Attributes, f)
 	m.AddField()
+}
+
+func (m *model) GetSQlTableName() string {
+	return strings.ToLower(m.Name) + "s" // TODO: CamelCase to snake_case
+}
+
+func (m *model) GetSQLInsert() string {
+	placeHolders := make([]string, len(m.Attributes))
+	for i := range placeHolders {
+		placeHolders[i] = "?"
+	}
+
+	return fmt.Sprintf(
+		"INSERT INTO %s (%s) VALUES (%s);",
+		m.GetSQlTableName(),
+		m.Attributes.GetSQLFieldNames(),
+		strings.Join(placeHolders, ", "),
+	)
 }

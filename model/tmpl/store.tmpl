@@ -2,7 +2,7 @@
 package {{.Name | ToLower}}store
 {{end}}
 
-{{define "store.go"}}{{$elems := .Attributes}}{{$numElems := $elems | len}}package {{.Name | ToLower}}store
+{{define "store.go"}}{{$elems := .Attributes}}package {{.Name | ToLower}}store
 
 import (
     "context"
@@ -26,24 +26,24 @@ var (
 
 // {{.Name}} represents the {{.Name | ToLower}} in the database
 type {{.Name}} struct {
-{{- range $index, $elem := $elems}}
-    {{$elem.Name}}  {{$elem.FieldType}} `db:"{{$elem.Name | ToLower}}"`   // TODO: convert CamelCase to snake_case
+{{- range $elem := $elems}}
+    {{$elem.GetStoreField}}
 {{- end}}
     CreatedAt  time.Time `db:"created_at"`
     ModifiedAt time.Time `db:"modified_at"`
 }
 
 // Create creates current object in the database
-func (r *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {
+func (r *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {    // TODO: receiver must be replaced
     if !r.IsValid() {
         return ErrDataMissing
     }
 
-    if r.ID != 0 {
+    if r.ID != 0 {  // TODO: switch between UUID and INT
         return ErrIDIsSet
     }
 
-    q := db.Rebind(`INSERT INTO {{.Name | ToLower}}s ({{- range $index, $elem := $elems}}{{$elem.Name | ToLower}}{{if not ($elems.IsLast $index)}},{{end}}{{end}}) VALUES (?, ?)`) {{$numElems}}   // TODO: iterate over fields
+    q := db.Rebind(`{{.GetSQLInsert}}`)
 
     res, err := db.ExecContext(ctx, q, r.Name, r.URL) // TODO: iterate over fields
     if err != nil {
