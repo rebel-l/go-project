@@ -26,7 +26,6 @@ func (s *store) Generate(m *model) error {
 	tmplFile := filepath.Join("./model/tmpl", "store.tmpl")
 	funcMap := template.FuncMap{
 		"ToLower": strings.ToLower,
-		//"StoreField":
 	}
 
 	tmpl, err := template.New("store").Funcs(funcMap).ParseFiles(tmplFile)
