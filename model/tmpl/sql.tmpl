@@ -1,13 +1,13 @@
 {{define "sqlite"}}{{$elems := .Attributes}}{{$model := .}}-- up
 CREATE TABLE IF NOT EXISTS {{.Name | ToLower}}s (
-{{- range $index, $elem := $elems}}
+{{- range $elem := $elems}}
     {{$elem | SqliteField}},    -- TODO: convert CamelCase to snake_case
 {{- end}}
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-{{- range $index, $elem := $elems}}{{if $elem.Unique}}
+{{- range $elem := $elems}}{{if $elem.Unique}}
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_{{$model.Name | ToLower}}s_{{$elem.Name | ToLower}} ON {{$model.Name | ToLower}}s ({{$elem.Name | ToLower}});
 {{end}}{{- end}}
@@ -18,7 +18,7 @@ end;
 
 
 -- down
-{{- range $index, $elem := $elems}}{{if $elem.Unique}}
+{{- range $elem := $elems}}{{if $elem.Unique}}
 DROP INDEX IF EXISTS idx_{{$model.Name | ToLower}}s_{{$elem.Name | ToLower}};
 {{end}}{{- end}}
 DROP TRIGGER IF EXISTS {{.Name | ToLower}}s_after_update;

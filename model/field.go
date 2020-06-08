@@ -23,7 +23,7 @@ const (
 
 type fields []*field
 
-func (f fields) Last(index int) bool {
+func (f fields) IsLast(index int) bool {
 	return index >= len(f)-1
 }
 
