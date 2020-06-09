@@ -1,4 +1,4 @@
-{{define "package.go"}}// Package {{.Name | ToLower}}store contains the CRUD operations for the {{.Name | ToLower}}s on the database
+{{define "package.go"}}// Package {{.Name | ToLower}}store contains the CRUD operations for the {{.Name | ToLower}}s on the database.
 package {{.Name | ToLower}}store
 {{end}}
 
@@ -14,17 +14,17 @@ import (
 
 var (
     // TODO: move that to central place, e.g. libs/store
-    // ErrIDMissing will be thrown if an ID is expected but not set
+    // ErrIDMissing will be thrown if an ID is expected but not set.
     ErrIDMissing = errors.New("id is mandatory for this operation")
 
-    // ErrIDIsSet will be thrown if no ID is expected but already set
+    // ErrIDIsSet will be thrown if no ID is expected but already set.
     ErrIDIsSet = errors.New("id should be not set for this operation, use update instead")
 
-    // ErrDataMissing will be thrown if mandatory data is not set
+    // ErrDataMissing will be thrown if mandatory data is not set.
     ErrDataMissing = errors.New("no data or mandatory data missing")
 )
 
-// {{.Name}} represents the {{.Name | ToLower}} in the database
+// {{.Name}} represents the {{.Name | ToLower}} in the database.
 type {{.Name}} struct {
 {{- range $elem := $elems}}
     {{$elem.GetStoreField}}
@@ -33,19 +33,19 @@ type {{.Name}} struct {
     ModifiedAt time.Time `db:"modified_at"`
 }
 
-// Create creates current object in the database
-func (r *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {    // TODO: receiver must be replaced
-    if !r.IsValid() {
+// Create creates current object in the database.
+func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {
+    if !{{.GetReceiver}}.IsValid() {
         return ErrDataMissing
     }
 
-    if r.ID != 0 {  // TODO: switch between UUID and INT
+    if {{.GetReceiver}}.ID != 0 {  // TODO: switch between UUID and INT
         return ErrIDIsSet
     }
 
     q := db.Rebind(`{{.GetSQLInsert}}`)
 
-    res, err := db.ExecContext(ctx, q, r.Name, r.URL) // TODO: iterate over fields
+    res, err := db.ExecContext(ctx, q, {{.GetReceiver}}Name, {{.GetReceiver}}URL) // TODO: iterate over fields
     if err != nil {
         return err
     }
@@ -55,57 +55,57 @@ func (r *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) error {    // TODO:
         return err
     }
 
-    r.ID = int(id)
+    {{.GetReceiver}}.ID = int(id) // TODO: switch between UUID and INT
 
-    return r.Read(ctx, db)
+    return {{.GetReceiver}}.Read(ctx, db)
 }
 
-// Read sets the {{.Name | ToLower}} from database by given ID
-func (r *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error {
-    if r == nil || r.ID == 0 {
+// Read sets the {{.Name | ToLower}} from database by given ID.
+func ({{.GetReceiver}} *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error {
+    if {{.GetReceiver}} == nil || {{.GetReceiver}}.ID == 0 { // TODO: switch between UUID and INT
         return ErrIDMissing
     }
 
-    q := db.Rebind(`SELECT * FROM {{.Name | ToLower}}s WHERE id = ?`)
+    q := db.Rebind(`SELECT * FROM {{.Name | ToLower}}s WHERE id = ?`)   // TODO: replace table name
 
-    return db.GetContext(ctx, r, q, r.ID)
+    return db.GetContext(ctx, {{.GetReceiver}}, q, {{.GetReceiver}}.ID)
 }
 
-// Update changes the current object on the database by ID
-func (r *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) error {
-    if !r.IsValid() {
+// Update changes the current object on the database by ID.
+func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) error {
+    if !{{.GetReceiver}}.IsValid() {
         return ErrDataMissing
     }
 
-    if r.ID == 0 {
+    if {{.GetReceiver}}.ID == 0 {   // TODO: switch between UUID and INT
         return ErrIDMissing
     }
 
     q := db.Rebind(`UPDATE {{.Name | ToLower}}s SET name = ?, url = ? WHERE id = ?`)    // TODO: iterate over fields
 
-    if _, err := db.ExecContext(ctx, q, r.Name, r.URL, r.ID); err != nil {
+    if _, err := db.ExecContext(ctx, q, {{.GetReceiver}}.Name, {{.GetReceiver}}.URL, {{.GetReceiver}}.ID); err != nil {
         return err
     }
 
-    return r.Read(ctx, db)
+    return {{.GetReceiver}}.Read(ctx, db)
 }
 
-// Delete removes the current object from database by its ID
-func (r *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) error {
-    if r == nil || r.ID == 0 {
+// Delete removes the current object from database by its ID.
+func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) error {
+    if {{.GetReceiver}} == nil || {{.GetReceiver}}.ID == 0 {    // TODO: switch between UUID and INT
         return ErrIDMissing
     }
 
-    q := db.Rebind(`DELETE FROM {{.Name | ToLower}}s WHERE id = ?`)
+    q := db.Rebind(`DELETE FROM {{.Name | ToLower}}s WHERE id = ?`) // TODO: replace table name
 
-    _, err := db.ExecContext(ctx, q, r.ID)
+    _, err := db.ExecContext(ctx, q, {{.GetReceiver}}.ID)
 
     return err
 }
 
-// IsValid returns true if all mandatory fields are set
-func (r *{{.Name}}) IsValid() bool {
-    if r == nil || r.Name == "" || r.URL == "" {
+// IsValid returns true if all mandatory fields are set.
+func ({{.GetReceiver}} *{{.Name}}) IsValid() bool {
+    if {{.GetReceiver}} == nil || {{.GetReceiver}}.Name == "" || {{.GetReceiver}}.URL == "" {   // TODO: not nullable are mandatory, except ID
         return false
     }
 

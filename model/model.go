@@ -65,6 +65,10 @@ func (m *model) GetSQlTableName() string {
 	return strings.ToLower(m.Name) + "s" // TODO: CamelCase to snake_case
 }
 
+func (m *model) GetReceiver() string {
+	return strings.ToLower(m.Name[0:1])
+}
+
 func (m *model) GetSQLInsert() string {
 	placeHolders := make([]string, len(m.Attributes))
 	for i := range placeHolders {
