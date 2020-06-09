@@ -49,6 +49,12 @@ func NewModel(rootPath string) *model {
 	}
 }
 
+func (m *model) SetID() {
+	fmt.Println()
+	m.Attributes = append(m.Attributes, NewFieldID())
+	fmt.Println()
+}
+
 func (m *model) AddField() {
 	fmt.Println()
 	fmt.Println("Add a new field to your model ... leave name empty as you declared all fields")
@@ -69,6 +75,35 @@ func (m *model) GetReceiver() string {
 	return strings.ToLower(m.Name[0:1])
 }
 
+func (m *model) GetStructFieldsWithoutID() string {
+	if len(m.Attributes) < 2 {
+		return ""
+	}
+
+	return strings.Join(m.getStructFieldsWithoutID(), ", ")
+}
+
+func (m *model) getStructFieldsWithoutID() []string {
+	if len(m.Attributes) < 2 {
+		return nil
+	}
+
+	var structFields []string
+
+	for _, v := range m.Attributes[1:] {
+		structFields = append(structFields, m.GetReceiver()+"."+v.Name)
+	}
+
+	return structFields
+}
+
+func (m *model) GetStructFieldsWithIDLast() string {
+	structFields := m.getStructFieldsWithoutID()
+	structFields = append(structFields, m.GetReceiver()+"."+m.Attributes[0].Name)
+
+	return strings.Join(structFields, ", ")
+}
+
 func (m *model) GetSQLInsert() string {
 	placeHolders := make([]string, len(m.Attributes))
 	for i := range placeHolders {
@@ -76,9 +111,26 @@ func (m *model) GetSQLInsert() string {
 	}
 
 	return fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s);",
+		"INSERT INTO %s (%s) VALUES (%s);", // TODO: switch between UUID and INT
 		m.GetSQlTableName(),
 		m.Attributes.GetSQLFieldNames(),
 		strings.Join(placeHolders, ", "),
+	)
+}
+
+func (m *model) GetSQLUpdate() string {
+	if len(m.Attributes) < 2 {
+		return ""
+	}
+
+	var fieldNames []string
+	for _, v := range m.Attributes[1:] {
+		fieldNames = append(fieldNames, v.GetSQlFieldName()+" = ?")
+	}
+
+	return fmt.Sprintf(
+		"UPDATE %s SET %s WHERE id = ?",
+		m.GetSQlTableName(),
+		strings.Join(fieldNames, ", "),
 	)
 }

@@ -13,6 +13,8 @@ import (
 )
 
 const (
+	fieldNameID = "ID"
+
 	fieldTypeString = "string"
 	fieldTypeInt    = "int"
 	fieldTypeFloat  = "float"
@@ -122,18 +124,45 @@ func NewField() *field {
 	return f
 }
 
+func NewFieldID() *field {
+	f := &field{
+		Name:       fieldNameID,
+		PrimaryKey: true,
+	}
+
+	fieldTypes := getPossibleIDTypes()
+	t := prompt.Input("enter the type of the ID > ", func(d prompt.Document) []prompt.Suggest {
+		s := options.GetSuggestions(fieldTypes)
+		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	}, prompt.OptionInputTextColor(prompt.Yellow))
+
+	t = strings.TrimSpace(strings.ToLower(t))
+
+	if !fieldTypes.IsValidOptionCI(t) {
+		var keys []string
+		_ = fieldTypes.ForAll(func(option option.Option) error {
+			keys = append(keys, option.Key)
+			return nil
+		})
+
+		print.Error(
+			fmt.Sprintf("type of ID must be one of the following values: %s", strings.Join(keys, ", ")),
+		)
+		f.setFieldType()
+	}
+
+	f.FieldType = t
+
+	return f
+}
+
 func (f *field) setName() {
 	n := prompt.Input("enter the name of the field > ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	}, prompt.OptionInputTextColor(prompt.Yellow))
 
 	n = strings.TrimSpace(n)
-	if strings.ToLower(n) == "id" {
-		f.PrimaryKey = true
-		f.Name = strings.ToUpper(n)
-	} else {
-		f.Name = strings.Title(n)
-	}
+	f.Name = strings.Title(n)
 }
 
 func (f *field) setFieldType() {
@@ -237,6 +266,19 @@ func getPossibleFieldTypes() option.Options {
 		{
 			Key:         fieldTypeBool,
 			Description: "value of type bool",
+		},
+		{
+			Key:         fieldTypeUUID,
+			Description: "value of type uuid",
+		},
+	}
+}
+
+func getPossibleIDTypes() option.Options {
+	return option.Options{
+		{
+			Key:         fieldTypeInt,
+			Description: "value of type integer",
 		},
 		{
 			Key:         fieldTypeUUID,

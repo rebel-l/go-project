@@ -1,4 +1,4 @@
-{{define "package.go"}}// Package {{.Name | ToLower}}store contains the CRUD operations for the {{.Name | ToLower}}s on the database.
+{{define "package.go"}}// Package {{.Name | ToLower}}store contains the CRUD operations for the {{.GetSQlTableName}} on the database.
 package {{.Name | ToLower}}store
 {{end}}
 
@@ -45,7 +45,7 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
 
     q := db.Rebind(`{{.GetSQLInsert}}`)
 
-    res, err := db.ExecContext(ctx, q, {{.GetReceiver}}Name, {{.GetReceiver}}URL) // TODO: iterate over fields
+    res, err := db.ExecContext(ctx, q, {{.GetStructFieldsWithoutID}}) // TODO: switch between UUID and INT
     if err != nil {
         return err
     }
@@ -66,7 +66,7 @@ func ({{.GetReceiver}} *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error 
         return ErrIDMissing
     }
 
-    q := db.Rebind(`SELECT * FROM {{.Name | ToLower}}s WHERE id = ?`)   // TODO: replace table name
+    q := db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
 
     return db.GetContext(ctx, {{.GetReceiver}}, q, {{.GetReceiver}}.ID)
 }
@@ -81,9 +81,9 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
         return ErrIDMissing
     }
 
-    q := db.Rebind(`UPDATE {{.Name | ToLower}}s SET name = ?, url = ? WHERE id = ?`)    // TODO: iterate over fields
+    q := db.Rebind(`{{.GetSQLUpdate}}`)
 
-    if _, err := db.ExecContext(ctx, q, {{.GetReceiver}}.Name, {{.GetReceiver}}.URL, {{.GetReceiver}}.ID); err != nil {
+    if _, err := db.ExecContext(ctx, q, {{.GetStructFieldsWithIDLast}}); err != nil {
         return err
     }
 
@@ -96,7 +96,7 @@ func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) erro
         return ErrIDMissing
     }
 
-    q := db.Rebind(`DELETE FROM {{.Name | ToLower}}s WHERE id = ?`) // TODO: replace table name
+    q := db.Rebind(`DELETE FROM {{.GetSQlTableName}} WHERE id = ?`)
 
     _, err := db.ExecContext(ctx, q, {{.GetReceiver}}.ID)
 

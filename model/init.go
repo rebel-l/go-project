@@ -4,6 +4,7 @@ import "fmt"
 
 func Init(path string) error {
 	m := NewModel(path)
+	m.SetID()
 	m.AddField()
 
 	g := getGenerators(path)
