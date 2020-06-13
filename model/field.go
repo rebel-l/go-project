@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/lib/options"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-utils/option"
@@ -21,6 +22,8 @@ const (
 	fieldTypeTime   = "time"
 	fieldTypeBool   = "bool"
 	fieldTypeUUID   = "uuid"
+
+	packageUUID = "github.com/google/uuid"
 )
 
 type fields []*field
@@ -33,6 +36,49 @@ func (f fields) GetSQLFieldNames() string {
 	}
 
 	return strings.Join(fieldNames, ", ")
+}
+
+func (f fields) GetSQLFieldNamesWithoutID() string {
+	var fieldNames []string
+
+	if len(f) < 2 {
+		return ""
+	}
+
+	for _, v := range f[1:] {
+		fieldNames = append(fieldNames, v.GetSQlFieldName())
+	}
+
+	return strings.Join(fieldNames, ", ")
+}
+
+func (f fields) GetPackages(projectRootPath string) ([]string, error) {
+	var packages []string
+
+	for _, v := range f {
+		switch v.FieldType {
+		case fieldTypeUUID:
+			if err := golang.Get(projectRootPath, packageUUID); err != nil {
+				return nil, err
+			}
+
+			packages = append(packages, packageUUID)
+		}
+	}
+
+	return packages, nil
+}
+
+func (f fields) GetNotNullableFieldsWithComparison(receiver string) []string {
+	var fields []string
+
+	for _, v := range f {
+		if !v.Nullable {
+			fields = append(fields, v.GetEmptyComparison(receiver))
+		}
+	}
+
+	return fields
 }
 
 func (f *field) GetGoFieldType() string {
@@ -105,6 +151,37 @@ func (f *field) GetSQLField() string { // TODO: support sql dialect ... maybe wi
 	}
 
 	return line
+}
+
+func (f *field) GetEmptyComparison(receiver string) string {
+	operator := "=="
+
+	field := receiver + "." + f.Name
+	switch f.FieldType {
+	case fieldTypeUUID:
+		field += ".String()"
+	case fieldTypeTime:
+		field += ".IsZero()"
+		operator = ""
+	}
+
+	return fmt.Sprintf("%s %s %s", field, operator, f.GetDefaultValue())
+}
+
+func (f *field) GetDefaultValue() string {
+	var value string
+	switch f.FieldType {
+	case fieldTypeUUID,
+		fieldTypeString:
+		value = "\"\""
+	case fieldTypeBool,
+		fieldTypeInt:
+		value = "0"
+	case fieldTypeFloat:
+		value = "0.0"
+	}
+
+	return value
 }
 
 func NewField() *field {

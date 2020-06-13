@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"path"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -11,9 +10,9 @@ import (
 )
 
 type model struct {
-	Name            string
-	Attributes      fields
-	destinationPath string // TODO: maybe not needed
+	Name       string
+	Attributes fields
+	rootPath   string
 }
 
 //func (m model) createStoreLayer() error {
@@ -44,8 +43,8 @@ func NewModel(rootPath string) *model {
 	}
 
 	return &model{
-		Name:            n,
-		destinationPath: path.Join(rootPath, n),
+		Name:     n,
+		rootPath: rootPath,
 	}
 }
 
@@ -75,22 +74,22 @@ func (m *model) GetReceiver() string {
 	return strings.ToLower(m.Name[0:1])
 }
 
-func (m *model) GetStructFieldsWithoutID() string {
-	if len(m.Attributes) < 2 {
-		return ""
-	}
-
-	return strings.Join(m.getStructFieldsWithoutID(), ", ")
+func (m *model) GetStructFields() string {
+	return strings.Join(m.getStructFields(0), ", ")
 }
 
-func (m *model) getStructFieldsWithoutID() []string {
-	if len(m.Attributes) < 2 {
+func (m *model) GetStructFieldsWithoutID() string {
+	return strings.Join(m.getStructFields(1), ", ")
+}
+
+func (m *model) getStructFields(start int) []string {
+	if len(m.Attributes) < start+1 {
 		return nil
 	}
 
 	var structFields []string
 
-	for _, v := range m.Attributes[1:] {
+	for _, v := range m.Attributes[start:] {
 		structFields = append(structFields, m.GetReceiver()+"."+v.Name)
 	}
 
@@ -98,24 +97,46 @@ func (m *model) getStructFieldsWithoutID() []string {
 }
 
 func (m *model) GetStructFieldsWithIDLast() string {
-	structFields := m.getStructFieldsWithoutID()
+	structFields := m.getStructFields(1)
 	structFields = append(structFields, m.GetReceiver()+"."+m.Attributes[0].Name)
 
 	return strings.Join(structFields, ", ")
 }
 
 func (m *model) GetSQLInsert() string {
-	placeHolders := make([]string, len(m.Attributes))
+	numFields := len(m.Attributes) - 1
+	fieldNames := m.Attributes.GetSQLFieldNamesWithoutID()
+
+	if m.IsIDUUID() {
+		fieldNames = m.Attributes.GetSQLFieldNames()
+		numFields++
+	}
+
+	placeHolders := make([]string, numFields)
 	for i := range placeHolders {
 		placeHolders[i] = "?"
 	}
 
 	return fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s);", // TODO: switch between UUID and INT
+		"INSERT INTO %s (%s) VALUES (%s);",
 		m.GetSQlTableName(),
-		m.Attributes.GetSQLFieldNames(),
+		fieldNames,
 		strings.Join(placeHolders, ", "),
 	)
+}
+
+func (m *model) GetExecInsert() string {
+	res := "res"
+	equal := ":="
+	fields := m.GetStructFieldsWithoutID()
+
+	if m.IsIDUUID() {
+		res = "_"
+		equal = "="
+		fields = m.GetStructFields()
+	}
+
+	return fmt.Sprintf("%s, err %s db.ExecContext(ctx, q, %s)", res, equal, fields)
 }
 
 func (m *model) GetSQLUpdate() string {
@@ -133,4 +154,29 @@ func (m *model) GetSQLUpdate() string {
 		m.GetSQlTableName(),
 		strings.Join(fieldNames, ", "),
 	)
+}
+
+func (m *model) GetPackages() ([]string, error) {
+	return m.Attributes.GetPackages(m.rootPath)
+}
+
+func (m *model) GetIDDefault() string {
+	switch m.Attributes[0].FieldType {
+	case fieldTypeUUID:
+		return "\"\""
+	}
+
+	return "0"
+}
+
+func (m *model) GetIDEmptyComparison() string {
+	return m.Attributes[0].GetEmptyComparison(m.GetReceiver())
+}
+
+func (m *model) IsIDUUID() bool {
+	return m.Attributes[0].FieldType == fieldTypeUUID
+}
+
+func (m *model) GetValidationWithoutID() string {
+	return strings.Join(m.Attributes[1:].GetNotNullableFieldsWithComparison(m.GetReceiver()), " || ")
 }

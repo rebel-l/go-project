@@ -10,15 +10,22 @@ import (
     "time"
 
     "github.com/jmoiron/sqlx"
+    {{range $p := .GetPackages}}"{{$p}}"{{end}}
 )
 
 var (
-    // TODO: move that to central place, e.g. libs/store
     // ErrIDMissing will be thrown if an ID is expected but not set.
     ErrIDMissing = errors.New("id is mandatory for this operation")
 
+    {{if .IsIDUUID -}}
+    // ErrCreatingID will be thrown if creating an ID failed.
+    ErrCreatingID = errors.New("id creation failed")
+
+    {{else -}}
     // ErrIDIsSet will be thrown if no ID is expected but already set.
     ErrIDIsSet = errors.New("id should be not set for this operation, use update instead")
+
+    {{end -}}
 
     // ErrDataMissing will be thrown if mandatory data is not set.
     ErrDataMissing = errors.New("no data or mandatory data missing")
@@ -39,30 +46,43 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
         return ErrDataMissing
     }
 
-    if {{.GetReceiver}}.ID != 0 {  // TODO: switch between UUID and INT
+    {{if .IsIDUUID -}}
+    var err error
+    {{.GetReceiver}}.ID, err = uuid.NewRandom() // TODO: maybe create a hash based on struct data
+    if err != nil {
+        return fmt.Errorf("%w: %v", ErrCreatingID, err)
+    }
+
+    {{else -}}
+    if {{.GetReceiver}}.ID != 0 {
         return ErrIDIsSet
     }
 
+    {{end -}}
+
     q := db.Rebind(`{{.GetSQLInsert}}`)
 
-    res, err := db.ExecContext(ctx, q, {{.GetStructFieldsWithoutID}}) // TODO: switch between UUID and INT
+    {{.GetExecInsert}}
     if err != nil {
         return err
     }
 
+    {{if not .IsIDUUID -}}
     id, err := res.LastInsertId()
     if err != nil {
         return err
     }
 
-    {{.GetReceiver}}.ID = int(id) // TODO: switch between UUID and INT
+    {{.GetReceiver}}.ID = int(id) // TODO: use int64 to avoid type conversion
+
+    {{end -}}
 
     return {{.GetReceiver}}.Read(ctx, db)
 }
 
 // Read sets the {{.Name | ToLower}} from database by given ID.
 func ({{.GetReceiver}} *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error {
-    if {{.GetReceiver}} == nil || {{.GetReceiver}}.ID == 0 { // TODO: switch between UUID and INT
+    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison}} {
         return ErrIDMissing
     }
 
@@ -77,7 +97,7 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
         return ErrDataMissing
     }
 
-    if {{.GetReceiver}}.ID == 0 {   // TODO: switch between UUID and INT
+    if {{.GetIDEmptyComparison}} {
         return ErrIDMissing
     }
 
@@ -92,7 +112,7 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
 
 // Delete removes the current object from database by its ID.
 func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) error {
-    if {{.GetReceiver}} == nil || {{.GetReceiver}}.ID == 0 {    // TODO: switch between UUID and INT
+    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison}} {
         return ErrIDMissing
     }
 
@@ -105,7 +125,7 @@ func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) erro
 
 // IsValid returns true if all mandatory fields are set.
 func ({{.GetReceiver}} *{{.Name}}) IsValid() bool {
-    if {{.GetReceiver}} == nil || {{.GetReceiver}}.Name == "" || {{.GetReceiver}}.URL == "" {   // TODO: not nullable are mandatory, except ID
+    if {{.GetReceiver}} == nil || {{.GetValidationWithoutID}} {
         return false
     }
 
