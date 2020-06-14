@@ -1,0 +1,187 @@
+{{define "package.go"}}// Package config provide the configurations to run this app.
+package config
+{{end}}
+
+{{define "database.go"}}package config
+
+const (
+    // DefaultPathToDatabase defines the path to the sqlite storage file
+    DefaultPathToDatabase = "./storage"
+
+    // DefaultPathToSchemaScripts defines the path to the scripts managing the database structure
+    DefaultPathToSchemaScripts = "./scripts/sql/sqlite" // TODO: change that it works with other dialects like postgres
+)
+
+// Database provides the configuration for the database
+type Database struct {
+    StoragePath       *string `json:"storage_path"`
+    SchemaScriptsPath *string `json:"schema_scripts_path"`
+}
+
+// GetStoragePath returns the path to the storage file
+func (d *Database) GetStoragePath() string {
+    if d == nil || d.StoragePath == nil {
+        return DefaultPathToDatabase
+    }
+
+    return *d.StoragePath
+}
+
+// GetSchemaScriptPath returns the path to the schema script files managing the database structure
+func (d *Database) GetSchemaScriptPath() string {
+    if d == nil || d.SchemaScriptsPath == nil {
+        return DefaultPathToSchemaScripts
+    }
+
+    return *d.SchemaScriptsPath
+}
+
+// Merge overwrites the values given by the config from parameter if they differ from default values
+func (d *Database) Merge(cfg *Database) {
+    if cfg == nil || d == nil {
+        return
+    }
+
+    if cfg.GetSchemaScriptPath() != DefaultPathToSchemaScripts {
+        d.SchemaScriptsPath = cfg.SchemaScriptsPath
+    }
+
+    if cfg.GetStoragePath() != DefaultPathToDatabase {
+        d.StoragePath = cfg.StoragePath
+    }
+}
+{{end}}
+
+{{define "database_test.go"}}package config_test
+
+import (
+    "testing"
+)
+
+func TestDatabase_GetStoragePath(t *testing.T) {
+    var db *config.Database
+    if db.GetStoragePath() != config.DefaultPathToDatabase {
+        t.Errorf(
+            "failed to retrieve default value '%s' from nil struct but got '%s'",
+            config.DefaultPathToDatabase,
+            db.GetStoragePath(),
+        )
+    }
+}
+
+func TestDatabase_GetSchemaScriptPath(t *testing.T) {
+    var db *config.Database
+    if db.GetSchemaScriptPath() != config.DefaultPathToSchemaScripts {
+        t.Errorf(
+            "failed to retrieve default value '%s' from nil struct but got '%s'",
+            config.DefaultPathToSchemaScripts,
+            db.GetSchemaScriptPath(),
+        )
+    }
+}
+
+type tcDatabaseMerge struct {
+    name      string
+    actual    *config.Database
+    mergeWith *config.Database
+    expected  *config.Database
+}
+
+func getTestCasesDatabaseMerge(t *testing.T) []tcDatabaseMerge { // nolint:dupl,funlen
+    t.Helper()
+
+    var testCases []tcDatabaseMerge
+
+    storagePath := "/mystorage"
+    scriptPath := "/myscripts"
+
+    newStoragePath := "/mynewstorage"
+    newScriptPath := "/mynewscripts"
+
+    // 1.
+    tc := tcDatabaseMerge{
+        name:      "config nil",
+        mergeWith: &config.Database{StoragePath: &storagePath},
+    }
+
+    testCases = append(testCases, tc)
+
+    // 2.
+    tc = tcDatabaseMerge{
+        name:     "parameter nil",
+        actual:   &config.Database{StoragePath: &storagePath},
+        expected: &config.Database{StoragePath: &storagePath},
+    }
+
+    testCases = append(testCases, tc)
+
+    // 3.
+    tc = tcDatabaseMerge{
+        name:      "config has default values, parameter has values",
+        actual:    &config.Database{},
+        mergeWith: &config.Database{StoragePath: &storagePath, SchemaScriptsPath: &scriptPath},
+        expected:  &config.Database{StoragePath: &storagePath, SchemaScriptsPath: &scriptPath},
+    }
+
+    testCases = append(testCases, tc)
+
+    // 4.
+    tc = tcDatabaseMerge{
+        name:      "config has values, parameter has values",
+        actual:    &config.Database{StoragePath: &storagePath, SchemaScriptsPath: &scriptPath},
+        mergeWith: &config.Database{StoragePath: &newStoragePath, SchemaScriptsPath: &newScriptPath},
+        expected:  &config.Database{StoragePath: &newStoragePath, SchemaScriptsPath: &newScriptPath},
+    }
+
+    testCases = append(testCases, tc)
+
+    // 5.
+    tc = tcDatabaseMerge{
+        name:      "config has values, parameter has default values",
+        actual:    &config.Database{StoragePath: &storagePath, SchemaScriptsPath: &scriptPath},
+        mergeWith: &config.Database{},
+        expected:  &config.Database{StoragePath: &storagePath, SchemaScriptsPath: &scriptPath},
+    }
+
+    testCases = append(testCases, tc)
+
+    // 6.
+    tc = tcDatabaseMerge{
+        name:      "config has default values, parameter has default values",
+        actual:    &config.Database{},
+        mergeWith: &config.Database{},
+        expected:  &config.Database{},
+    }
+
+    testCases = append(testCases, tc)
+
+    return testCases
+}
+
+func TestDatabase_Merge(t *testing.T) {
+    for _, testCase := range getTestCasesDatabaseMerge(t) {
+        t.Run(testCase.name, func(t *testing.T) {
+            testCase.actual.Merge(testCase.mergeWith)
+            testDatabase(t, testCase.expected, testCase.actual)
+        })
+    }
+}
+
+func testDatabase(t *testing.T, expected, got *config.Database) {
+    t.Helper()
+
+    if expected.GetStoragePath() != got.GetStoragePath() {
+        t.Errorf(
+            "failed to set database storage path: expected '%s' but got '%s'",
+            expected.GetStoragePath(), got.GetStoragePath(),
+        )
+    }
+
+    if expected.GetSchemaScriptPath() != got.GetSchemaScriptPath() {
+        t.Errorf(
+            "failed to set database schema script path: expected '%s' but got '%s'",
+            expected.GetSchemaScriptPath(), got.GetSchemaScriptPath(),
+        )
+    }
+}
+{{end}}

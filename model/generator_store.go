@@ -42,7 +42,7 @@ func (s *store) Generate(m *model) error {
 	return nil
 }
 
-func (s store) store(m *model, tmpl *template.Template, path, tmplID string) error {
+func (s *store) store(m *model, tmpl *template.Template, path, tmplID string) error {
 	fileName := filepath.Join(path, strings.Replace(tmplID, "store", strings.ToLower(m.Name), -1))
 	file, err := os.Create(fileName)
 	if err != nil {
