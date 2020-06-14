@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -68,6 +69,11 @@ func (m *model) AddField() {
 
 func (m *model) GetSQlTableName() string {
 	return strings.ToLower(m.Name) + "s" // TODO: CamelCase to snake_case
+}
+
+func (m *model) GetProjectName() string {
+	_, p := filepath.Split(m.rootPath)
+	return p
 }
 
 func (m *model) GetReceiver() string {
