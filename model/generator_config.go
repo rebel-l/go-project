@@ -10,11 +10,11 @@ import (
 	"github.com/rebel-l/go-utils/osutils"
 )
 
-type database struct {
+type config struct {
 	rootPath string
 }
 
-func (d *database) Generate(_ *model) error {
+func (d *config) Generate(_ *model) error {
 	configPath := path.Join(d.rootPath, "config")
 	if osutils.FileOrPathExists(configPath) {
 		return nil
@@ -24,15 +24,15 @@ func (d *database) Generate(_ *model) error {
 		return err
 	}
 
-	tmplFile := filepath.Join("./model/tmpl", "database.tmpl")
+	tmplFile := filepath.Join("./model/tmpl", "config.tmpl")
 
-	tmpl, err := template.New("store").ParseFiles(tmplFile)
+	tmpl, err := template.New("config").ParseFiles(tmplFile)
 	if err != nil {
 		return fmt.Errorf("failed to load templates: %s", err)
 	}
 
 	for _, tmplID := range getDatabaseTemplateIdentifiers() {
-		if err := d.database(tmpl, configPath, tmplID); err != nil {
+		if err := d.config(tmpl, configPath, tmplID); err != nil {
 			return err
 		}
 	}
@@ -40,11 +40,11 @@ func (d *database) Generate(_ *model) error {
 	return nil
 }
 
-func (d *database) database(tmpl *template.Template, path, tmplID string) error {
+func (d *config) config(tmpl *template.Template, path, tmplID string) error {
 	fileName := filepath.Join(path, tmplID)
 	file, err := os.Create(fileName)
 	if err != nil {
-		return fmt.Errorf("failed to create store file: %s", err)
+		return fmt.Errorf("failed to create config file: %s", err)
 	}
 	defer func() {
 		_ = file.Close()
