@@ -186,3 +186,35 @@ func (m *model) IsIDUUID() bool {
 func (m *model) GetValidationWithoutID() string {
 	return strings.Join(m.Attributes[1:].GetNotNullableFieldsWithComparison(m.GetReceiver()), " || ")
 }
+
+func (m *model) GetTestDataCRUD() []testDataCRUD {
+	// struct nil => covered directly in template
+	var testCases []testDataCRUD
+
+	// field only (iterate over all fields)
+	for _, f := range m.Attributes {
+		td := testDataCRUD{
+			Name:   fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
+			Actual: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
+			// TODO: continue
+		}
+
+		testCases = append(testCases, td)
+	}
+
+	// all mandatory fields AND id set ==> CREATE
+	// success (a) all fields, (b) only mandatory CREATE (without ID), UPDATE, DELETE, READ
+	// duplicate
+	// max field length (less, exact, too much)
+	// not existing
+
+	return testCases
+}
+
+type testDataCRUD struct {
+	Name        string
+	Prepare     string
+	Actual      string
+	Expected    string
+	ExpectedErr string // TODO: how to deal with it? Always different, maybe fill in GetTestCasesFor Create, Update, Delete, Read
+}

@@ -2,13 +2,18 @@ package model
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/lib/options"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-utils/option"
+	"github.com/rebel-l/go-utils/randutils"
 
 	"github.com/c-bata/go-prompt"
 )
@@ -182,6 +187,31 @@ func (f *field) GetDefaultValue() string {
 	}
 
 	return value
+}
+
+func (f *field) GetTestData() string {
+	data := f.Name + ": "
+
+	switch f.FieldType {
+	case fieldTypeUUID:
+		u, err := uuid.NewRandom()
+		if err != nil {
+			return ""
+		}
+		data += fmt.Sprintf("testingutils.UUIDParse(\"%s\")", u.String())
+	case fieldTypeString:
+		data += fmt.Sprintf("\"My%s\"", f.Name)
+	case fieldTypeInt:
+		data += fmt.Sprintf("%d", randutils.Int(1, math.MaxInt16))
+	case fieldTypeFloat:
+		data += fmt.Sprintf("%f", 25.326)
+	case fieldTypeTime:
+		data += fmt.Sprintf("time.Parse(\"\\\"2006-01-02 15:04:05.999999999 -0700 MST\\\"\", %s)", time.Now().String())
+	case fieldTypeBool:
+		data += " true"
+	}
+
+	return data
 }
 
 func NewField() *field {

@@ -17,15 +17,11 @@ var (
     // ErrIDMissing will be thrown if an ID is expected but not set.
     ErrIDMissing = errors.New("id is mandatory for this operation")
 
-    {{if .IsIDUUID -}}
-    // ErrCreatingID will be thrown if creating an ID failed.
-    ErrCreatingID = errors.New("id creation failed")
+    {{if .IsIDUUID -}}// ErrCreatingID will be thrown if creating an ID failed.
+    ErrCreatingID = errors.New("id creation failed"){{end}}
 
-    {{else -}}
     // ErrIDIsSet will be thrown if no ID is expected but already set.
     ErrIDIsSet = errors.New("id should be not set for this operation, use update instead")
-
-    {{end -}}
 
     // ErrDataMissing will be thrown if mandatory data is not set.
     ErrDataMissing = errors.New("no data or mandatory data missing")
@@ -47,6 +43,10 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
     }
 
     {{if .IsIDUUID -}}
+    if {{.GetReceiver}}.ID.String() != "" {
+        return ErrIDIsSet
+    }
+
     var err error
     {{.GetReceiver}}.ID, err = uuid.NewRandom() // TODO: maybe create a hash based on struct data
     if err != nil {
@@ -156,7 +156,7 @@ func setup(t *testing.T, name string) *sqlx.DB {
 
     // 0. init path
     storagePath := filepath.Join(".", "..", "..", "storage", "test_{{.Name | ToLower}}", name)
-    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql". "sqlite") // TODO: change that it works with other dialects like postgres
+    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite") // TODO: change that it works with other dialects like postgres
     conf := &config.Database{
         StoragePath:       &storagePath,
         SchemaScriptsPath: &scriptPath,
@@ -203,11 +203,13 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
             name:        "{{.Name | ToLower}} is nil",
             expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
         },
+        {{- range $testData := .GetTestDataCRUD}}
         {
-            name:        "{{.Name | ToLower}} has no name",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{URL: "myurl"},
+            name:        "{{$testData.Name}}",
+            actual:      {{$testData.Actual}},
             expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
         },
+        {{end}}
         {
             name:        "{{.Name | ToLower}} has no url",
             actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname"},
