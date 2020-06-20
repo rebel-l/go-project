@@ -209,13 +209,13 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
             actual:      {{$testData.Actual}},
             {{if ne .ExpectedErr ""}}expectedErr: {{.ExpectedErr}},{{end}}
         },
-        {{end}}
+        {{- end}}
     }
 
     for _, testCase := range testCases {
         t.Run(testCase.name, func(t *testing.T) {
             err := testCase.actual.Create(context.Background(), db)
-            checkErrors(t, testCase.expectedErr, err)
+            testingutils.ErrorsCheck(t, testCase.expectedErr, err)
             assert{{.Name}}(t, testCase.expected, testCase.actual)
         })
     }
@@ -267,7 +267,7 @@ func Test{{.Name}}_Read(t *testing.T) {
             }
 
             err := testCase.actual.Read(context.Background(), db)
-            checkErrors(t, testCase.expectedErr, err)
+            testingutils.ErrorsCheck(t, testCase.expectedErr, err)
             assert{{.Name}}(t, testCase.expected, testCase.actual)
         })
     }
@@ -367,7 +367,7 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
             }
 
             err := testCase.actual.Update(context.Background(), db)
-            checkErrors(t, testCase.expectedErr, err)
+            testingutils.ErrorsCheck(t, testCase.expectedErr, err)
             assert{{.Name}}(t, testCase.expected, testCase.actual)
 
             if testCase.prepare != nil && testCase.actual != nil {
@@ -441,7 +441,7 @@ func Test{{.Name}}_Delete(t *testing.T) {
             }
 
             err := testCase.actual.Delete(context.Background(), db)
-            checkErrors(t, testCase.expectedErr, err)
+            testingutils.ErrorsCheck(t, testCase.expectedErr, err)
 
             if id > 0 {
                 testCase.actual = &{{.Name | ToLower}}store.{{.Name}}{ID: id}
@@ -494,23 +494,5 @@ func Test{{.Name}}_IsValid(t *testing.T) {
             }
         })
     }
-}
-
-func checkErrors(t *testing.T, expected, actual error) {
-    t.Helper()
-
-    if errors.Is(actual, expected) {
-        return
-    }
-
-    if expected != nil && actual != nil {
-        if expected.Error() != actual.Error() {
-            t.Errorf("expected error '%v' but got '%v'", expected, actual)
-        }
-
-        return
-    }
-
-    t.Errorf("expected error '%v' but got '%v'", expected, actual)
 }
 {{end}}

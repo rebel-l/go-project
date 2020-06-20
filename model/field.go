@@ -156,7 +156,7 @@ func (f *field) GetTestData() string {
 		if err != nil {
 			return ""
 		}
-		data += fmt.Sprintf("testingutils.UUIDParse(\"%s\")", u.String())
+		data += fmt.Sprintf("testingutils.UUIDParse(t, \"%s\")", u.String())
 	case fieldTypeString:
 		max := 50
 		if f.MaxLength > 0 {

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	packageGoUtils = "github.com/rebel-l/go-utils"
+	packageGoUtils = "github.com/rebel-l/go-utils@v1.2.0-rc.2" // TODO: remove version number
 )
 
 func Init(path string) error {
