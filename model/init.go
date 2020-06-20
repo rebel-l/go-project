@@ -1,8 +1,20 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/rebel-l/go-project/golang"
+)
+
+const (
+	packageGoUtils = "github.com/rebel-l/go-utils"
+)
 
 func Init(path string) error {
+	if err := golang.Get(path, packageGoUtils); err != nil {
+		return err
+	}
+
 	m := NewModel(path)
 	m.SetID()
 	m.AddField()

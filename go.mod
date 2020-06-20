@@ -3,6 +3,7 @@ module github.com/rebel-l/go-project
 go 1.14
 
 require (
+	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/c-bata/go-prompt v0.2.3
 	github.com/cheggaaa/pb/v3 v3.0.4
 	github.com/fatih/color v1.9.0

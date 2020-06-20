@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Pallinder/go-randomdata"
+
 	"github.com/google/uuid"
 
-	"github.com/rebel-l/go-project/golang"
 	"github.com/rebel-l/go-project/lib/options"
 	"github.com/rebel-l/go-project/lib/print"
 	"github.com/rebel-l/go-utils/option"
@@ -21,70 +22,18 @@ import (
 const (
 	fieldNameID = "ID"
 
-	fieldTypeString = "string"
-	fieldTypeInt    = "int"
-	fieldTypeFloat  = "float"
-	fieldTypeTime   = "time"
-	fieldTypeBool   = "bool"
-	fieldTypeUUID   = "uuid"
+	fieldTypeString    = "string"
+	fieldTypeEmail     = "email"
+	fieldTypeFirstName = "firstname"
+	fieldTypeLastName  = "lastname"
+	fieldTypeInt       = "int"
+	fieldTypeFloat     = "float"
+	fieldTypeTime      = "time"
+	fieldTypeBool      = "bool"
+	fieldTypeUUID      = "uuid"
 
 	packageUUID = "github.com/google/uuid"
 )
-
-type fields []*field
-
-func (f fields) GetSQLFieldNames() string {
-	var fieldNames []string
-
-	for _, v := range f {
-		fieldNames = append(fieldNames, v.GetSQlFieldName())
-	}
-
-	return strings.Join(fieldNames, ", ")
-}
-
-func (f fields) GetSQLFieldNamesWithoutID() string {
-	var fieldNames []string
-
-	if len(f) < 2 {
-		return ""
-	}
-
-	for _, v := range f[1:] {
-		fieldNames = append(fieldNames, v.GetSQlFieldName())
-	}
-
-	return strings.Join(fieldNames, ", ")
-}
-
-func (f fields) GetPackages(projectRootPath string) ([]string, error) {
-	var packages []string
-
-	for _, v := range f {
-		switch v.FieldType {
-		case fieldTypeUUID:
-			if err := golang.Get(projectRootPath, packageUUID); err != nil {
-				return nil, err
-			}
-
-			packages = append(packages, packageUUID)
-		}
-	}
-
-	return packages, nil
-}
-
-func (f fields) GetNotNullableFieldsWithComparison(receiver string) []string {
-	var fields []string
-
-	for _, v := range f {
-		if !v.Nullable {
-			fields = append(fields, v.GetEmptyComparison(receiver))
-		}
-	}
-
-	return fields
-}
 
 func (f *field) GetGoFieldType() string {
 	if f.FieldType == fieldTypeUUID {
@@ -118,7 +67,10 @@ func (f *field) GetSQLField() string { // TODO: support sql dialect ... maybe wi
 	switch f.FieldType {
 	case fieldTypeUUID:
 		line += " CHAR(36)"
-	case fieldTypeString:
+	case fieldTypeString,
+		fieldTypeEmail,
+		fieldTypeFirstName,
+		fieldTypeLastName:
 		line += fmt.Sprintf(" VARCHAR(%d)", f.MaxLength)
 	case fieldTypeBool,
 		fieldTypeInt:
@@ -135,7 +87,10 @@ func (f *field) GetSQLField() string { // TODO: support sql dialect ... maybe wi
 
 	if f.DefaultValue != "" {
 		switch f.FieldType {
-		case fieldTypeString:
+		case fieldTypeString,
+			fieldTypeEmail,
+			fieldTypeFirstName,
+			fieldTypeLastName:
 			line += fmt.Sprintf(" DEFAULT '%s'", f.DefaultValue)
 		case fieldTypeBool:
 			if strings.ToLower(f.DefaultValue) == "true" {
@@ -177,7 +132,10 @@ func (f *field) GetDefaultValue() string {
 	var value string
 	switch f.FieldType {
 	case fieldTypeUUID,
-		fieldTypeString:
+		fieldTypeString,
+		fieldTypeEmail,
+		fieldTypeFirstName,
+		fieldTypeLastName:
 		value = "\"\""
 	case fieldTypeBool,
 		fieldTypeInt:
@@ -200,11 +158,21 @@ func (f *field) GetTestData() string {
 		}
 		data += fmt.Sprintf("testingutils.UUIDParse(\"%s\")", u.String())
 	case fieldTypeString:
-		data += fmt.Sprintf("\"My%s\"", f.Name)
+		max := 50
+		if f.MaxLength > 0 {
+			max = f.MaxLength
+		}
+		data += fmt.Sprintf("\"%s\"", randomdata.RandStringRunes(randutils.Int(5, max)))
+	case fieldTypeEmail:
+		data += fmt.Sprintf("\"%s\"", randomdata.Email())
+	case fieldTypeFirstName:
+		data += fmt.Sprintf("\"%s\"", randomdata.FirstName(randomdata.RandomGender))
+	case fieldTypeLastName:
+		data += fmt.Sprintf("\"%s\"", randomdata.LastName())
 	case fieldTypeInt:
 		data += fmt.Sprintf("%d", randutils.Int(1, math.MaxInt16))
 	case fieldTypeFloat:
-		data += fmt.Sprintf("%f", 25.326)
+		data += fmt.Sprintf("%f", randomdata.Decimal(10, 10000))
 	case fieldTypeTime:
 		data += fmt.Sprintf("time.Parse(\"\\\"2006-01-02 15:04:05.999999999 -0700 MST\\\"\", %s)", time.Now().String())
 	case fieldTypeBool:
@@ -336,7 +304,10 @@ func (f *field) setUnique() {
 }
 
 func (f *field) setMaxLength() {
-	if f.FieldType != fieldTypeString {
+	if f.FieldType != fieldTypeString &&
+		f.FieldType != fieldTypeEmail &&
+		f.FieldType != fieldTypeFirstName &&
+		f.FieldType != fieldTypeLastName {
 		return
 	}
 
@@ -357,6 +328,18 @@ func getPossibleFieldTypes() option.Options {
 		{
 			Key:         fieldTypeString,
 			Description: "value of type string",
+		},
+		{
+			Key:         fieldTypeEmail,
+			Description: "value of type email which is at the end just a string",
+		},
+		{
+			Key:         fieldTypeFirstName,
+			Description: "value of type first name which is at the end just a string",
+		},
+		{
+			Key:         fieldTypeLastName,
+			Description: "value of type last name which is at the end just a string",
 		},
 		{
 			Key:         fieldTypeInt,

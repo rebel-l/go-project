@@ -203,40 +203,20 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
             name:        "{{.Name | ToLower}} is nil",
             expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
         },
-        {{- range $testData := .GetTestDataCRUD}}
+        {{- range $testData := .GetTestDataCRUD "create"}}
         {
             name:        "{{$testData.Name}}",
             actual:      {{$testData.Actual}},
-            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+            {{if ne .ExpectedErr ""}}expectedErr: {{.ExpectedErr}},{{end}}
         },
         {{end}}
-        {
-            name:        "{{.Name | ToLower}} has no url",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname"},
-            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
-        },
-        {
-            name:        "{{.Name | ToLower}} has ID",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
-            expectedErr: {{.Name | ToLower}}store.ErrIDIsSet,
-        },
-        {
-            name:     "success",
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
-            expected: &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
-        },
-        {
-            name:        "duplicate",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
-            expectedErr: errors.New("UNIQUE constraint failed: repositories.url, repositories.name"),
-        },
     }
 
     for _, testCase := range testCases {
         t.Run(testCase.name, func(t *testing.T) {
             err := testCase.actual.Create(context.Background(), db)
             checkErrors(t, testCase.expectedErr, err)
-            test{{.Name}}(t, testCase.expected, testCase.actual)
+            assert{{.Name}}(t, testCase.expected, testCase.actual)
         })
     }
 }
@@ -288,12 +268,12 @@ func Test{{.Name}}_Read(t *testing.T) {
 
             err := testCase.actual.Read(context.Background(), db)
             checkErrors(t, testCase.expectedErr, err)
-            test{{.Name}}(t, testCase.expected, testCase.actual)
+            assert{{.Name}}(t, testCase.expected, testCase.actual)
         })
     }
 }
 
-func test{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{.Name}}) {
+func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{.Name}}) {
     t.Helper()
 
     if expected == nil && actual == nil {
@@ -388,7 +368,7 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
 
             err := testCase.actual.Update(context.Background(), db)
             checkErrors(t, testCase.expectedErr, err)
-            test{{.Name}}(t, testCase.expected, testCase.actual)
+            assert{{.Name}}(t, testCase.expected, testCase.actual)
 
             if testCase.prepare != nil && testCase.actual != nil {
                 if testCase.prepare.CreatedAt != testCase.actual.CreatedAt {

@@ -10,6 +10,10 @@ import (
 	"github.com/rebel-l/go-project/lib/print"
 )
 
+const (
+	operationCreate = "create"
+)
+
 type model struct {
 	Name       string
 	Attributes fields
@@ -187,26 +191,58 @@ func (m *model) GetValidationWithoutID() string {
 	return strings.Join(m.Attributes[1:].GetNotNullableFieldsWithComparison(m.GetReceiver()), " || ")
 }
 
-func (m *model) GetTestDataCRUD() []testDataCRUD {
+func (m *model) GetTestDataCRUD(operation string) []testDataCRUD {
 	// struct nil => covered directly in template
 	var testCases []testDataCRUD
 
 	// field only (iterate over all fields)
 	for _, f := range m.Attributes {
 		td := testDataCRUD{
-			Name:   fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
-			Actual: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
-			// TODO: continue
+			Name:        fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
+			ExpectedErr: fmt.Sprintf("%sstore.ErrDataMissing", strings.ToLower(m.Name)),
 		}
 
 		testCases = append(testCases, td)
 	}
 
-	// all mandatory fields AND id set ==> CREATE
-	// success (a) all fields, (b) only mandatory CREATE (without ID), UPDATE, DELETE, READ
-	// duplicate
-	// max field length (less, exact, too much)
-	// not existing
+	// all mandatory fields AND id set ==> CREATE only
+	if operation == operationCreate {
+		td := testDataCRUD{
+			Name:        fmt.Sprintf("%s has id", strings.ToLower(m.Name)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, true)),
+			ExpectedErr: fmt.Sprintf("%sstore.ErrIDIsSet", strings.ToLower(m.Name)),
+		}
+
+		testCases = append(testCases, td)
+	}
+
+	// success (a) all fields, (b) only mandatory ==> CREATE (without ID), UPDATE, DELETE, READ
+	withID := true
+	if operation == operationCreate {
+		withID = false
+	}
+	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, withID))
+	td := testDataCRUD{
+		Name:     fmt.Sprintf("%s has all fields set", strings.ToLower(m.Name)),
+		Actual:   data,
+		Expected: data,
+	}
+
+	testCases = append(testCases, td)
+
+	data = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, withID))
+	td = testDataCRUD{
+		Name:     fmt.Sprintf("%s has only mandatory fields set", strings.ToLower(m.Name)),
+		Actual:   data,
+		Expected: data,
+	}
+
+	testCases = append(testCases, td)
+
+	// TODO: duplicate (all unique fields seperately) ==> CREATE (without ID), UPDATE
+	// TODO: max field length (less, exact, too much) ==> CREATE (without ID), UPDATE
+	// TODO: not existing ==> UPDATE, DELETE, READ
 
 	return testCases
 }
