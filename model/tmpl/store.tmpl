@@ -299,20 +299,15 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{
     }
 
     if expected != nil && actual == nil || expected == nil && actual != nil {
+        t.Errorf("expected '%v' but got '%v'", expected, actual)
         return
     }
 
-    if expected.ID != actual.ID {
-        t.Errorf("expected ID %d but got %d", expected.ID, actual.ID)
+    {{- range $elem := .Attributes}}
+    if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+        t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }
-
-    if expected.Name != actual.Name {
-        t.Errorf("expectade name '%s' but got '%s'", expected.Name, actual.Name)
-    }
-
-    if expected.URL != actual.URL {
-        t.Errorf("expectade url '%s' but got '%s'", expected.URL, actual.URL)
-    }
+    {{end}}
 
     if actual.CreatedAt.IsZero() {
         t.Error("created at should be greater than the zero date")

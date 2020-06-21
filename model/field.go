@@ -36,11 +36,19 @@ const (
 )
 
 func (f *field) GetGoFieldType() string {
-	if f.FieldType == fieldTypeUUID {
-		return "uuid.UUID"
+	var ft string
+	switch f.FieldType {
+	case fieldTypeUUID:
+		ft = "uuid.UUID"
+	case fieldTypeFirstName,
+		fieldTypeLastName,
+		fieldTypeEmail:
+		ft = "string"
+	default:
+		ft = f.FieldType
 	}
 
-	return f.FieldType
+	return ft
 }
 
 type field struct {
@@ -142,6 +150,26 @@ func (f *field) GetDefaultValue() string {
 		value = "0"
 	case fieldTypeFloat:
 		value = "0.0"
+	}
+
+	return value
+}
+
+func (f *field) GetFormat() string {
+	var value string
+	switch f.FieldType {
+	case fieldTypeUUID,
+		fieldTypeString,
+		fieldTypeEmail,
+		fieldTypeFirstName,
+		fieldTypeLastName:
+		value = "%s"
+	case fieldTypeBool:
+		value = "%t"
+	case fieldTypeInt:
+		value = "%d"
+	case fieldTypeFloat:
+		value = "%f"
 	}
 
 	return value
