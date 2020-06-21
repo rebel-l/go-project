@@ -238,7 +238,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 
 	// TODO: duplicate (all unique fields seperately) ==> CREATE (without ID), UPDATE
 	// TODO: max field length (less, exact, too much) ==> CREATE (without ID), UPDATE
-	// TODO: not existing ==> UPDATE, DELETE, READ
+	// TODO: not existing ==> UPDATE
 
 	return testCases
 }

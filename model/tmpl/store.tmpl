@@ -349,32 +349,18 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
             name:        "{{.Name | ToLower}} is nil",
             expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
         },
+        {{- range $testData := .GetTestDataCU "update"}}
         {
-            name:        "{{.Name | ToLower}} has no name",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, URL: "myurl"},
-            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
+            name:        "{{$testData.Name}}",
+            actual:      {{$testData.Actual}},
+            {{- if ne .Expected ""}}
+                expected: {{.Expected}},
+            {{- end}}
+            {{- if ne .ExpectedErr ""}}
+                expectedErr: {{.ExpectedErr}},
+            {{- end}}
         },
-        {
-            name:        "{{.Name | ToLower}} has no url",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname"},
-            expectedErr: {{.Name | ToLower}}store.ErrDataMissing,
-        },
-        {
-            name:        "{{.Name | ToLower}} has no ID",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{Name: "myname", URL: "myurl"},
-            expectedErr: {{.Name | ToLower}}store.ErrIDMissing,
-        },
-        {
-            name:     "success",
-            prepare:  &{{.Name | ToLower}}store.{{.Name}}{Name: "init name", URL: "init url"},
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
-            expected: &{{.Name | ToLower}}store.{{.Name}}{ID: 1, Name: "myname", URL: "myurl"},
-        },
-        {
-            name:        "not existing {{.Name | ToLower}}",
-            actual:      &{{.Name | ToLower}}store.{{.Name}}{ID: 2, Name: "myname", URL: "myurl"},
-            expectedErr: sql.ErrNoRows,
-        },
+        {{- end}}
     }
 
     for _, testCase := range testCases {
