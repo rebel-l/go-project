@@ -20,10 +20,6 @@ type model struct {
 	rootPath   string
 }
 
-//func (m model) createStoreLayer() error {
-//	return nil
-//}
-//
 //func (m model) createModelLayer() error {
 //	return nil
 //}
@@ -191,7 +187,7 @@ func (m *model) GetValidationWithoutID() string {
 	return strings.Join(m.Attributes[1:].GetNotNullableFieldsWithComparison(m.GetReceiver()), " || ")
 }
 
-func (m *model) GetTestDataCRUD(operation string) []testDataCRUD {
+func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	// struct nil => covered directly in template
 	var testCases []testDataCRUD
 
@@ -243,6 +239,31 @@ func (m *model) GetTestDataCRUD(operation string) []testDataCRUD {
 	// TODO: duplicate (all unique fields seperately) ==> CREATE (without ID), UPDATE
 	// TODO: max field length (less, exact, too much) ==> CREATE (without ID), UPDATE
 	// TODO: not existing ==> UPDATE, DELETE, READ
+
+	return testCases
+}
+
+func (m *model) GetTestDataRD() []testDataCRUD {
+	// struct nil => covered directly in template
+	var testCases []testDataCRUD
+
+	// success
+	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
+	td := testDataCRUD{
+		Name:     "success",
+		Prepare:  data,
+		Expected: data,
+	}
+
+	testCases = append(testCases, td)
+
+	// not existing
+	td = testDataCRUD{
+		Name:    "not existing",
+		Prepare: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes[0].GetTestData()),
+	}
+
+	testCases = append(testCases, td)
 
 	return testCases
 }
