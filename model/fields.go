@@ -77,7 +77,7 @@ func (f fields) GetTestData(mandatoryOnly bool, withID bool) string {
 func (f fields) CountMandatory() int {
 	var i int
 	for _, v := range f {
-		if !v.Nullable {
+		if !v.Nullable && v.Name != fieldNameID {
 			i++
 		}
 	}

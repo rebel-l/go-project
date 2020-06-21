@@ -193,6 +193,10 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 
 	// field only (iterate over all fields)
 	for _, f := range m.Attributes {
+		if !f.Nullable && (f.Name != fieldNameID || m.Attributes.CountMandatory() > 1) {
+			continue // TODO: check for success
+		}
+
 		td := testDataCRUD{
 			Name:        fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
 			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
@@ -276,7 +280,7 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 	countMandatory := m.Attributes.CountMandatory()
 	for _, f := range m.Attributes {
 		expected := "false"
-		if !f.Nullable && countMandatory == 1 {
+		if !f.Nullable && countMandatory == 1 && f.Name != fieldNameID {
 			expected = "true"
 		}
 

@@ -22,7 +22,7 @@ const (
 )
 
 // Database initialises the database and returns the connection
-func Database(conf *config.Database, version string) (*sqlx.DB, error) {
+func Database(conf *config.Database, version string, withBar bool) (*sqlx.DB, error) {
     fileName, err := createStorage(conf.GetStoragePath())
     if err != nil {
         return nil, fmt.Errorf("bootstrap database, create storage failed: %v", err)
@@ -33,7 +33,7 @@ func Database(conf *config.Database, version string) (*sqlx.DB, error) {
         return nil, fmt.Errorf("bootstrap database, open database failed: %w", err)
     }
 
-    err = createSchema(db, conf.GetSchemaScriptPath(), version)
+    err = createSchema(db, conf.GetSchemaScriptPath(), version, withBar)
     if err != nil {
         return nil, fmt.Errorf("bootstrap database, create schema failed: %w", err)
     }
@@ -59,9 +59,11 @@ func createStorage(path string) (string, error) {
     return fileName, nil
 }
 
-func createSchema(db *sqlx.DB, scriptPath, version string) error {
+func createSchema(db *sqlx.DB, scriptPath, version string, withBar bool) error {
     s := schema.New(db)
-    s.WithProgressBar()
+    if withBar {
+        s.WithProgressBar()
+    }
 
     return s.Upgrade(scriptPath, version)
 }
@@ -76,7 +78,7 @@ func buildFileName(path string) string {
 }
 
 // DatabaseReset resets the whole database. NOTE: all data will be lost, should be used only for development.
-func DatabaseReset(conf *config.Database) error {
+func DatabaseReset(conf *config.Database, withBar bool) error {
     fileName := buildFileName(conf.GetStoragePath())
 
     db, err := open(fileName)
@@ -89,7 +91,9 @@ func DatabaseReset(conf *config.Database) error {
     }()
 
     s := schema.New(db)
-    s.WithProgressBar()
+    if withBar {
+        s.WithProgressBar()
+    }
 
     err = s.RevertAll(conf.GetSchemaScriptPath())
     if err != nil {
@@ -149,7 +153,7 @@ func TestDatabase(t *testing.T) {
     conf := setup(t, "test_bootstrap")
 
     // 2. do the test
-    db, err := bootstrap.Database(conf, "0.0.0")
+    db, err := bootstrap.Database(conf, "0.0.0", false)
     if err != nil {
         t.Fatalf("No error expected: %v", err)
     }
@@ -188,7 +192,7 @@ func TestDatabaseReset(t *testing.T) {
     conf := setup(t, "test_reset")
 
     // 2. do the test
-    db, err := bootstrap.Database(conf, "0.0.0")
+    db, err := bootstrap.Database(conf, "0.0.0", false)
     if err != nil {
         t.Fatalf("No error expected on bbotstrap: %v", err)
     }
@@ -199,7 +203,7 @@ func TestDatabaseReset(t *testing.T) {
         }
     }()
 
-    if err = bootstrap.DatabaseReset(conf); err != nil {
+    if err = bootstrap.DatabaseReset(conf, false); err != nil {
         t.Fatalf("No error expected on reset: %v", err)
     }
 
