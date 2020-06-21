@@ -268,10 +268,74 @@ func (m *model) GetTestDataRD() []testDataCRUD {
 	return testCases
 }
 
+func (m *model) GetTestIsValid() []testDataIsValid {
+	// struct nil => covered directly in template
+	var testCases []testDataIsValid
+
+	// field only (iterate over all fields)
+	countMandatory := m.Attributes.CountMandatory()
+	for _, f := range m.Attributes {
+		expected := "false"
+		if !f.Nullable && countMandatory == 1 {
+			expected = "true"
+		}
+
+		td := testDataIsValid{
+			Name:     fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
+			Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
+			Expected: expected,
+		}
+
+		testCases = append(testCases, td)
+	}
+
+	// mandatory fields only
+	td := testDataIsValid{
+		Name:     "mandatory fields only",
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false)),
+		Expected: "true",
+	}
+
+	testCases = append(testCases, td)
+
+	td = testDataIsValid{
+		Name:     "mandatory fields with id",
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, true)),
+		Expected: "true",
+	}
+
+	testCases = append(testCases, td)
+
+	// all fields
+	td = testDataIsValid{
+		Name:     "all fields",
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, true)),
+		Expected: "true",
+	}
+
+	testCases = append(testCases, td)
+
+	td = testDataIsValid{
+		Name:     "all fields without id",
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false)),
+		Expected: "true",
+	}
+
+	testCases = append(testCases, td)
+
+	return testCases
+}
+
 type testDataCRUD struct {
 	Name        string
 	Prepare     string
 	Actual      string
 	Expected    string
-	ExpectedErr string // TODO: how to deal with it? Always different, maybe fill in GetTestCasesFor Create, Update, Delete, Read
+	ExpectedErr string
+}
+
+type testDataIsValid struct {
+	Name     string
+	Actual   string
+	Expected string
 }

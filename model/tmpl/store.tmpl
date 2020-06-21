@@ -147,7 +147,6 @@ import (
     "github.com/jmoiron/sqlx"
     _ "github.com/mattn/go-sqlite3"
 
-    // "github.com/rebel-l/branma_be/{{.Name | ToLower}}/{{.Name | ToLower}}store" // TODO: goimports is doing the job?
     "github.com/rebel-l/go-utils/osutils"
 )
 
@@ -467,26 +466,13 @@ func Test{{.Name}}_IsValid(t *testing.T) {
             name:     "{{.Name | ToLower}} is nil",
             expected: false,
         },
+        {{- range $testData := .GetTestIsValid}}
         {
-            name:     "only id is set",
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123},
-            expected: false,
+            name:     "{{$testData.Name}}",
+            actual:   {{$testData.Actual}},
+            expected: {{$testData.Expected}},
         },
-        {
-            name:     "name missing",
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, URL: "test"},
-            expected: false,
-        },
-        {
-            name:     "url missing",
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, Name: "test"},
-            expected: false,
-        },
-        {
-            name:     "all data",
-            actual:   &{{.Name | ToLower}}store.{{.Name}}{ID: 123, Name: "test", URL: "test"},
-            expected: true,
-        },
+        {{- end}}
     }
 
     for _, testCase := range testCases {

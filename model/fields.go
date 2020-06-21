@@ -73,3 +73,14 @@ func (f fields) GetTestData(mandatoryOnly bool, withID bool) string {
 
 	return strings.Join(data, ", ")
 }
+
+func (f fields) CountMandatory() int {
+	var i int
+	for _, v := range f {
+		if !v.Nullable {
+			i++
+		}
+	}
+
+	return i
+}
