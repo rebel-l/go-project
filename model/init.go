@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 
+	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
 )
 
@@ -10,7 +11,7 @@ const (
 	packageGoUtils = "github.com/rebel-l/go-utils@v1.2.0-rc.2" // TODO: remove version number
 )
 
-func Init(path string) error {
+func Init(path string, commit git.CallbackAddAndCommit) error {
 	if err := golang.Get(path, packageGoUtils); err != nil {
 		return err
 	}
@@ -23,7 +24,16 @@ func Init(path string) error {
 
 	fmt.Println()
 
-	return g.Generate(m)
+	if err := g.Generate(m); err != nil {
+		return err
+	}
+
+	// TODO: how to get the files?
+	//if err := commit([]string{}, fmt.Sprintf("added model %s", m.Name), 1); err != nil {
+	//	return err
+	//}
+
+	return golang.GoImports(path, commit, 2)
 }
 
 func getGenerators(path string) Generators {

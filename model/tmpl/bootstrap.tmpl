@@ -107,15 +107,10 @@ import (
     "path/filepath"
     "testing"
 
-    // "github.com/rebel-l/branma_be/config" // TODO: goimports is doing the job?
-
-    "github.com/rebel-l/go-utils/slice"
-
-    "github.com/rebel-l/go-utils/osutils"
-
     _ "github.com/mattn/go-sqlite3"
 
-    // "github.com/rebel-l/branma_be/bootstrap" // TODO: goimports is doing the job?
+    "github.com/rebel-l/go-utils/slice"
+    "github.com/rebel-l/go-utils/osutils"
 )
 
 func setup(t *testing.T, name string) *config.Database {
@@ -123,7 +118,7 @@ func setup(t *testing.T, name string) *config.Database {
 
     // 1. config
     storagePath := filepath.Join(".", "..", "storage", name)
-    scriptPath := filepath.Join(".", "..", "scripts", "schema")
+    scriptPath := filepath.Join(".", "..", "scripts", "sql", "sqlite") // TODO: change that it works with other dialects like postgres
     conf := &config.Database{
         StoragePath:       &storagePath,
         SchemaScriptsPath: &scriptPath,
