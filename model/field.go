@@ -127,7 +127,7 @@ func (f *field) GetEmptyComparison(receiver string) string {
 	field := receiver + "." + f.Name
 	switch f.FieldType {
 	case fieldTypeUUID:
-		field += ".String()"
+		return fmt.Sprintf("uuidutils.IsEmpty(%s)", field)
 	case fieldTypeTime:
 		field += ".IsZero()"
 		operator = ""

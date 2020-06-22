@@ -12,6 +12,8 @@ import (
 
 const (
 	operationCreate = "create"
+	operationUpdate = "update"
+	operationRead   = "read"
 )
 
 type model struct {
@@ -218,7 +220,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	// success (a) all fields, (b) only mandatory ==> CREATE (without ID), UPDATE, DELETE, READ
-	withID := true
+	withID := false // TODO: I guess it's not needed anymore
 	if operation == operationCreate {
 		withID = false
 	}
@@ -227,6 +229,10 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		Name:     fmt.Sprintf("%s has all fields set", strings.ToLower(m.Name)),
 		Actual:   data,
 		Expected: data,
+	}
+
+	if operation == operationUpdate {
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, withID))
 	}
 
 	testCases = append(testCases, td)
@@ -238,6 +244,10 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		Expected: data,
 	}
 
+	if operation == operationUpdate {
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, withID))
+	}
+
 	testCases = append(testCases, td)
 
 	// TODO: duplicate (all unique fields seperately) ==> CREATE (without ID), UPDATE
@@ -247,7 +257,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	return testCases
 }
 
-func (m *model) GetTestDataRD() []testDataCRUD {
+func (m *model) GetTestDataRD(operation string) []testDataCRUD {
 	// struct nil => covered directly in template
 	var testCases []testDataCRUD
 
@@ -265,6 +275,10 @@ func (m *model) GetTestDataRD() []testDataCRUD {
 	td = testDataCRUD{
 		Name:    "not existing",
 		Prepare: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes[0].GetTestData()),
+	}
+
+	if operation == operationRead {
+		td.ExpectedErr = "sql.ErrNoRows"
 	}
 
 	testCases = append(testCases, td)
