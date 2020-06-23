@@ -219,12 +219,19 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		testCases = append(testCases, td)
 	}
 
-	// success (a) all fields, (b) only mandatory ==> CREATE (without ID), UPDATE, DELETE, READ
-	withID := false // TODO: I guess it's not needed anymore
-	if operation == operationCreate {
-		withID = false
+	// all mandatory fields set AND id is missing ==> UPDATE only
+	if operation == operationUpdate {
+		td := testDataCRUD{
+			Name:        fmt.Sprintf("%s has no id", strings.ToLower(m.Name)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false)),
+			ExpectedErr: fmt.Sprintf("%sstore.ErrIDMissing", strings.ToLower(m.Name)),
+		}
+
+		testCases = append(testCases, td)
 	}
-	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, withID))
+
+	// success (a) all fields, (b) only mandatory ==> CREATE (without ID), UPDATE, DELETE, READ
+	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
 	td := testDataCRUD{
 		Name:     fmt.Sprintf("%s has all fields set", strings.ToLower(m.Name)),
 		Actual:   data,
@@ -232,12 +239,12 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	if operation == operationUpdate {
-		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, withID))
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
 	}
 
 	testCases = append(testCases, td)
 
-	data = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, withID))
+	data = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false))
 	td = testDataCRUD{
 		Name:     fmt.Sprintf("%s has only mandatory fields set", strings.ToLower(m.Name)),
 		Actual:   data,
@@ -245,7 +252,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	if operation == operationUpdate {
-		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, withID))
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false))
 	}
 
 	testCases = append(testCases, td)
