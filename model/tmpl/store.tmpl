@@ -462,7 +462,7 @@ func Test{{.Name}}_Delete(t *testing.T) {
             err := actual.Delete(context.Background(), db)
             testingutils.ErrorsCheck(t, testCase.expectedErr, err)
 
-            if {{if .IsIDUUID}}id.String() != ""{{else}}id > 0{{end}} {
+            if {{if .IsIDUUID}}!uuidutils.IsEmpty(id){{else}}id > 0{{end}} {
                 err := actual.Read(context.Background(), db)
                 if !errors.Is(err, sql.ErrNoRows) {
                     t.Errorf("expected error '%v' after deletion but got '%v'", sql.ErrNoRows, err)
