@@ -219,12 +219,21 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		testCases = append(testCases, td)
 	}
 
-	// all mandatory fields set AND id is missing ==> UPDATE only
 	if operation == operationUpdate {
+		// all mandatory fields set AND id is missing ==> UPDATE only
 		td := testDataCRUD{
 			Name:        fmt.Sprintf("%s has no id", strings.ToLower(m.Name)),
 			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false)),
 			ExpectedErr: fmt.Sprintf("%sstore.ErrIDMissing", strings.ToLower(m.Name)),
+		}
+
+		testCases = append(testCases, td)
+
+		// not existing ==> UPDATE
+		td = testDataCRUD{
+			Name:        "not existing",
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, true)),
+			ExpectedErr: "sql.ErrNoRows",
 		}
 
 		testCases = append(testCases, td)
@@ -259,7 +268,6 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 
 	// TODO: duplicate (all unique fields seperately) ==> CREATE (without ID), UPDATE
 	// TODO: max field length (less, exact, too much) ==> CREATE (without ID), UPDATE
-	// TODO: not existing ==> UPDATE
 
 	return testCases
 }
