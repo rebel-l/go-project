@@ -35,6 +35,17 @@ const (
 	packageUUID = "github.com/google/uuid"
 )
 
+type field struct {
+	Name         string
+	PrimaryKey   bool
+	FieldType    string
+	DefaultValue string
+	MaxLength    int
+	Nullable     bool
+	Unique       bool
+	TestData     string
+}
+
 func (f *field) GetGoFieldType() string {
 	var ft string
 	switch f.FieldType {
@@ -51,18 +62,12 @@ func (f *field) GetGoFieldType() string {
 	return ft
 }
 
-type field struct {
-	Name         string
-	PrimaryKey   bool
-	FieldType    string
-	DefaultValue string
-	MaxLength    int
-	Nullable     bool
-	Unique       bool
-}
-
 func (f *field) GetStoreField() string {
 	return fmt.Sprintf("%s	%s	`db:\"%s\"`", f.Name, f.GetGoFieldType(), f.GetSQlFieldName())
+}
+
+func (f *field) GetModelField() string {
+	return fmt.Sprintf("%s	%s	`json:\"%s\"`", f.Name, f.GetGoFieldType(), f.Name)
 }
 
 func (f *field) GetSQlFieldName() string {
@@ -175,39 +180,64 @@ func (f *field) GetFormat() string {
 	return value
 }
 
-func (f *field) GetTestData() string {
+func (f *field) GetTestDataForStruct(value string) string {
 	data := f.Name + ": "
 
 	switch f.FieldType {
 	case fieldTypeUUID:
+		data += fmt.Sprintf("testingutils.UUIDParse(t, %s)", value)
+	case fieldTypeString,
+		fieldTypeEmail,
+		fieldTypeFirstName,
+		fieldTypeLastName,
+		fieldTypeInt,
+		fieldTypeFloat,
+		fieldTypeBool:
+		data += value
+	case fieldTypeTime:
+		data += fmt.Sprintf("time.Parse(\"\\\"%s\\\"\", %s)", time.RFC3339Nano, value)
+	}
+
+	return data
+}
+
+func (f *field) GetTestDataForJSON(value string) string {
+	return fmt.Sprintf("\"%s\": %s", f.Name, value)
+}
+
+func (f *field) GetTestData() string {
+	switch f.FieldType {
+	case fieldTypeUUID:
 		u, err := uuid.NewRandom()
 		if err != nil {
-			return ""
+			f.TestData = "\"\""
 		}
-		data += fmt.Sprintf("testingutils.UUIDParse(t, \"%s\")", u.String())
+		f.TestData = fmt.Sprintf("\"%s\"", u.String())
 	case fieldTypeString:
 		max := 50
 		if f.MaxLength > 0 {
 			max = f.MaxLength
 		}
-		data += fmt.Sprintf("\"%s\"", randomdata.RandStringRunes(randutils.Int(5, max)))
+		f.TestData = fmt.Sprintf("\"%s\"", randomdata.RandStringRunes(randutils.Int(5, max)))
 	case fieldTypeEmail:
-		data += fmt.Sprintf("\"%s\"", randomdata.Email())
+		f.TestData = fmt.Sprintf("\"%s\"", randomdata.Email())
 	case fieldTypeFirstName:
-		data += fmt.Sprintf("\"%s\"", randomdata.FirstName(randomdata.RandomGender))
+		f.TestData = fmt.Sprintf("\"%s\"", randomdata.FirstName(randomdata.RandomGender))
 	case fieldTypeLastName:
-		data += fmt.Sprintf("\"%s\"", randomdata.LastName())
+		f.TestData = fmt.Sprintf("\"%s\"", randomdata.LastName())
 	case fieldTypeInt:
-		data += fmt.Sprintf("%d", randutils.Int(1, math.MaxInt16))
+		f.TestData = fmt.Sprintf("%d", randutils.Int(1, math.MaxInt16))
 	case fieldTypeFloat:
-		data += fmt.Sprintf("%f", randomdata.Decimal(10, 10000))
+		f.TestData = fmt.Sprintf("%f", randomdata.Decimal(10, 10000))
 	case fieldTypeTime:
-		data += fmt.Sprintf("time.Parse(\"\\\"2006-01-02 15:04:05.999999999 -0700 MST\\\"\", %s)", time.Now().String())
+		f.TestData = fmt.Sprintf("\"%s\"", time.Now().Format(time.RFC3339Nano))
 	case fieldTypeBool:
-		data += " true"
+		f.TestData = "true"
+	default:
+		f.TestData = fmt.Sprintf("NO TESTDATA DEFINED FOR THIS FIELDTYPE: %s", f.FieldType)
 	}
 
-	return data
+	return f.TestData
 }
 
 func NewField() *field {

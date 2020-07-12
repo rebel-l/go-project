@@ -43,6 +43,7 @@ func getGenerators(path string) Generators {
 	g = append(g, &bootstrap{rootPath: path})
 	g = append(g, &sql{rootPath: path})
 	g = append(g, &store{rootPath: path})
+	g = append(g, &modelGen{rootPath: path})
 
 	return g
 }

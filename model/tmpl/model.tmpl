@@ -1,0 +1,146 @@
+{{define "package.go"}}// Package {{.Name | ToLower}}model provides functionality and business logic to manage {{.Name | ToLower}}s.
+package {{.Name | ToLower}}model
+{{end}}
+
+{{define "model.go"}}{{$elems := .Attributes}}package {{.Name | ToLower}}model
+
+import (
+    "encoding/json"
+    "errors"
+    "fmt"
+    "io"
+    "time"
+)
+
+var (
+    // ErrDecodeJSON occurs if the a string is not in JSON format
+    ErrDecodeJSON = errors.New("failed to decode JSON")
+)
+
+// {{.Name}} represents a model of repository including business logic
+type {{.Name}} struct {
+    {{- range $elem := $elems}}
+    {{$elem.GetModelField}}
+    {{- end}}
+    CreatedAt  time.Time `json:"CreatedAt"`
+    ModifiedAt time.Time `json:"ModifiedAt"`
+}
+
+// DecodeJSON converts JSON data to struct
+func (r *{{.Name}}) DecodeJSON(reader io.Reader) error {
+    if r == nil {
+        return nil
+    }
+
+    decoder := json.NewDecoder(reader)
+    if err := decoder.Decode(r); err != nil {
+        return fmt.Errorf("%w: %v", ErrDecodeJSON, err)
+    }
+
+    return nil
+}
+{{end}}
+
+{{define "model_test.go"}}{{$model := .GenerateTestData}}package {{.Name | ToLower}}model_test
+
+import (
+    "bytes"
+    "errors"
+    "io"
+    "testing"
+    "time"
+)
+
+func Test{{.Name}}_DecodeJSON(t *testing.T) {
+    createdAt, _ := time.Parse(time.RFC3339Nano, "2019-12-31T03:36:57.9167778+01:00")
+    modifiedAt, _ := time.Parse(time.RFC3339Nano, "2020-01-01T15:44:57.9168378+01:00")
+
+    testCases := []struct {
+        name        string
+        actual      *{{.Name | ToLower}}model.{{.Name}}
+        json        io.Reader
+        expected    *{{.Name | ToLower}}model.{{.Name}}
+        expectedErr error
+    }{
+        {
+            name: "model is nil",
+        },
+        {
+            name:        "no JSON format",
+            actual:      &{{.Name | ToLower}}model.{{.Name}}{},
+            json:        bytes.NewReader([]byte("no JSON")),
+            expected:    &{{.Name | ToLower}}model.{{.Name}}{},
+            expectedErr: {{.Name | ToLower}}model.ErrDecodeJSON,
+        },
+        {
+            name:   "success",
+            actual: &{{.Name | ToLower}}model.{{.Name}}{},
+            json: bytes.NewReader([]byte(`
+                {{template "json_test_data" $model}}
+            `)),
+            expected: {{template "struct_test_data" $model}},
+        },
+        {
+            name:     "empty json",
+            actual:   &{{.Name | ToLower}}model.{{.Name}}{},
+            json:     bytes.NewReader([]byte("{}")),
+            expected: &{{.Name | ToLower}}model.{{.Name}}{},
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            err := testCase.actual.DecodeJSON(testCase.json)
+            if !errors.Is(err, testCase.expectedErr) {
+                t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+                return
+            }
+
+            assert{{.Name}}(t, testCase.expected, testCase.actual)
+        })
+    }
+}
+
+func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{.Name}}) {
+    t.Helper()
+
+    if expected == nil && actual == nil {
+        return
+    }
+
+    if expected != nil && actual == nil || expected == nil && actual != nil {
+        t.Errorf("expected '%v' but got '%v'", expected, actual)
+        return
+    }
+
+    {{- range $elem := .Attributes}}
+    if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+        t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
+    }
+    {{end}}
+
+    if !expected.CreatedAt.Equal(actual.CreatedAt) {
+        t.Errorf("expected created at '%s' but got '%s'", expected.CreatedAt.String(), actual.CreatedAt.String())
+    }
+
+    if !expected.ModifiedAt.Equal(actual.ModifiedAt) {
+        t.Errorf("expected modified at '%s' but got '%s'", expected.ModifiedAt.String(), actual.ModifiedAt.String())
+    }
+}
+{{end}}
+
+{{define "json_test_data"}}{
+    {{- range $elem := .Attributes}}
+    {{$elem.GetTestDataForJSON $elem.TestData}},
+    {{- end}}
+    "CreatedAt": "2019-12-31T03:36:57.9167778+01:00",
+    "ModifiedAt": "2020-01-01T15:44:57.9168378+01:00"
+}{{end}}
+
+{{define "struct_test_data"}}&{{.Name | ToLower}}model.{{.Name}}{
+    {{- range $elem := .Attributes}}
+    {{$elem.GetTestDataForStruct $elem.TestData}},
+    {{- end}}
+    CreatedAt:  createdAt,
+    ModifiedAt: modifiedAt,
+}{{end}}

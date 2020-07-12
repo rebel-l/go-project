@@ -61,14 +61,14 @@ func (f fields) GetNotNullableFieldsWithComparison(receiver string) []string {
 	return fields
 }
 
-func (f fields) GetTestData(mandatoryOnly bool, withID bool) string {
+func (f fields) GetTestDataForStruct(mandatoryOnly bool, withID bool) string {
 	var data []string
 	for _, v := range f {
 		if (mandatoryOnly && v.Nullable) || (!withID && v.Name == "ID") {
 			continue
 		}
 
-		data = append(data, v.GetTestData())
+		data = append(data, v.GetTestDataForStruct(v.GetTestData()))
 	}
 
 	return strings.Join(data, ", ")

@@ -22,10 +22,6 @@ type model struct {
 	rootPath   string
 }
 
-//func (m model) createModelLayer() error {
-//	return nil
-//}
-//
 //func (m model) createMapperLayer() error {
 //	return nil
 //}
@@ -201,7 +197,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 
 		td := testDataCRUD{
 			Name:        fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
-			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestDataForStruct(f.GetTestData())),
 			ExpectedErr: fmt.Sprintf("%sstore.ErrDataMissing", strings.ToLower(m.Name)),
 		}
 
@@ -212,7 +208,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	if operation == operationCreate {
 		td := testDataCRUD{
 			Name:        fmt.Sprintf("%s has id", strings.ToLower(m.Name)),
-			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, true)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, true)),
 			ExpectedErr: fmt.Sprintf("%sstore.ErrIDIsSet", strings.ToLower(m.Name)),
 		}
 
@@ -223,7 +219,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		// all mandatory fields set AND id is missing ==> UPDATE only
 		td := testDataCRUD{
 			Name:        fmt.Sprintf("%s has no id", strings.ToLower(m.Name)),
-			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, false)),
 			ExpectedErr: fmt.Sprintf("%sstore.ErrIDMissing", strings.ToLower(m.Name)),
 		}
 
@@ -232,7 +228,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 		// not existing ==> UPDATE
 		td = testDataCRUD{
 			Name:        "not existing",
-			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, true)),
+			Actual:      fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(true, true)),
 			ExpectedErr: "sql.ErrNoRows",
 		}
 
@@ -240,7 +236,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	// success (a) all fields, (b) only mandatory ==> CREATE (without ID), UPDATE, DELETE, READ
-	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
+	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, false))
 	td := testDataCRUD{
 		Name:     fmt.Sprintf("%s has all fields set", strings.ToLower(m.Name)),
 		Actual:   data,
@@ -248,12 +244,12 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	if operation == operationUpdate {
-		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, false))
 	}
 
 	testCases = append(testCases, td)
 
-	data = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false))
+	data = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(true, false))
 	td = testDataCRUD{
 		Name:     fmt.Sprintf("%s has only mandatory fields set", strings.ToLower(m.Name)),
 		Actual:   data,
@@ -261,7 +257,7 @@ func (m *model) GetTestDataCU(operation string) []testDataCRUD {
 	}
 
 	if operation == operationUpdate {
-		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false))
+		td.Prepare = fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(true, false))
 	}
 
 	testCases = append(testCases, td)
@@ -277,7 +273,7 @@ func (m *model) GetTestDataRD(operation string) []testDataCRUD {
 	var testCases []testDataCRUD
 
 	// success
-	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false))
+	data := fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, false))
 	td := testDataCRUD{
 		Name:     "success",
 		Prepare:  data,
@@ -289,7 +285,7 @@ func (m *model) GetTestDataRD(operation string) []testDataCRUD {
 	// not existing
 	td = testDataCRUD{
 		Name:    "not existing",
-		Prepare: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes[0].GetTestData()),
+		Prepare: fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes[0].GetTestDataForStruct(m.Attributes[0].GetTestData())),
 	}
 
 	if operation == operationRead {
@@ -315,7 +311,7 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 
 		td := testDataIsValid{
 			Name:     fmt.Sprintf("%s has %s only", strings.ToLower(m.Name), strings.ToLower(f.Name)),
-			Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestData()),
+			Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, f.GetTestDataForStruct(f.GetTestData())),
 			Expected: expected,
 		}
 
@@ -325,7 +321,7 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 	// mandatory fields only
 	td := testDataIsValid{
 		Name:     "mandatory fields only",
-		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, false)),
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(true, false)),
 		Expected: "true",
 	}
 
@@ -333,7 +329,7 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 
 	td = testDataIsValid{
 		Name:     "mandatory fields with id",
-		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(true, true)),
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(true, true)),
 		Expected: "true",
 	}
 
@@ -342,7 +338,7 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 	// all fields
 	td = testDataIsValid{
 		Name:     "all fields",
-		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, true)),
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, true)),
 		Expected: "true",
 	}
 
@@ -350,13 +346,21 @@ func (m *model) GetTestIsValid() []testDataIsValid {
 
 	td = testDataIsValid{
 		Name:     "all fields without id",
-		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestData(false, false)),
+		Actual:   fmt.Sprintf("&%sstore.%s{%s}", strings.ToLower(m.Name), m.Name, m.Attributes.GetTestDataForStruct(false, false)),
 		Expected: "true",
 	}
 
 	testCases = append(testCases, td)
 
 	return testCases
+}
+
+func (m *model) GenerateTestData() *model {
+	for _, v := range m.Attributes {
+		_ = v.GetTestData()
+	}
+
+	return m
 }
 
 type testDataCRUD struct {
