@@ -1,0 +1,417 @@
+{{define "package.go"}}// Package {{.Name | ToLower}}mapper provides functionality to read and persist {{.Name | ToLower}}s.
+package {{.Name | ToLower}}mapper
+{{end}}
+
+{{define "mapper.go"}}package {{.Name | ToLower}}mapper
+
+import (
+    "context"
+    "database/sql"
+    "errors"
+    "fmt"
+
+    "github.com/jmoiron/sqlx"
+)
+
+var (
+    // ErrLoadFromDB occurs if something went wrong on loading
+    ErrLoadFromDB = errors.New("failed to load {{.Name | ToLower}} from database")
+
+    // ErrNoData occurs if given model is nil
+    ErrNoData = errors.New("{{.Name | ToLower}} is nil")
+
+    // ErrSaveToDB occurs if something went wrong on saving
+    ErrSaveToDB = errors.New("failed to save {{.Name | ToLower}} to database")
+
+    // ErrDeleteFromDB occurs if something went wrong on deleting
+    ErrDeleteFromDB = errors.New("failed to delete {{.Name | ToLower}} from database")
+
+    // ErrNotFound occurs if record doesn't exist in database
+    ErrNotFound = errors.New("{{.Name | ToLower}} was not found")
+)
+
+// Mapper provides methods to load and persist {{.Name | ToLower}} models
+type Mapper struct {
+    db *sqlx.DB
+}
+
+// New returns a new mapper
+func New(db *sqlx.DB) *Mapper {
+    return &Mapper{db: db}
+}
+
+// Load returns a {{.Name | ToLower}} model loaded from database by ID
+func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
+    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
+
+    err := s.Read(ctx, m.db)
+    if errors.Is(err, sql.ErrNoRows) {
+        return nil, ErrNotFound
+    } else if err != nil {
+        return nil, fmt.Errorf("%w: %v", ErrLoadFromDB, err)
+    }
+
+    return storeToModel(s), nil
+}
+
+// Save persists (create or update) the model and returns the changed data (id, createdAt or modifiedAt)
+func (m *Mapper) Save(ctx context.Context, model *{{.Name | ToLower}}model.{{.Name}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
+    if model == nil {
+        return nil, ErrNoData
+    }
+
+    s := modelToStore(model)
+
+    if {{.GetIDEmptyComparison "model"}} {
+        if err := s.Create(ctx, m.db); err != nil {
+            return nil, fmt.Errorf("%w: %v", ErrSaveToDB, err)
+        }
+    } else {
+        if err := s.Update(ctx, m.db); err != nil {
+            return nil, fmt.Errorf("%w: %v", ErrSaveToDB, err)
+        }
+    }
+
+    model = storeToModel(s)
+
+    return model, nil
+}
+
+// Delete removes a model from database by ID
+func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
+    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
+    if err := s.Delete(ctx, m.db); err != nil {
+        return fmt.Errorf("%w: %v", ErrDeleteFromDB, err)
+    }
+
+    return nil
+}
+
+func storeToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}model.{{.Name}} {
+    if s == nil {
+        return &{{.Name | ToLower}}model.{{.Name}}{}
+    }
+
+    return &{{.Name | ToLower}}model.{{.Name}}{
+        {{- range $elem := .Attributes}}
+        {{$elem.Name}}: s.{{$elem.Name}},
+        {{- end}}
+        CreatedAt:  s.CreatedAt,
+        ModifiedAt: s.ModifiedAt,
+    }
+}
+
+func modelToStore(m *{{.Name | ToLower}}model.{{.Name}}) *{{.Name | ToLower}}store.{{.Name}} {
+    if m == nil {
+        return &{{.Name | ToLower}}store.{{.Name}}{}
+    }
+
+    return &{{.Name | ToLower}}store.{{.Name}}{
+        {{- range $elem := .Attributes}}
+        {{$elem.Name}}: m.{{$elem.Name}},
+        {{- end}}
+        CreatedAt:  m.CreatedAt,
+        ModifiedAt: m.ModifiedAt,
+    }
+}
+{{end}}
+
+{{define "mapper_test.go"}}package {{.Name | ToLower}}mapper_test
+
+import (
+    "context"
+    "errors"
+    "os"
+    "path/filepath"
+    "testing"
+
+    "github.com/jmoiron/sqlx"
+
+    _ "github.com/mattn/go-sqlite3"
+)
+
+func setup(t *testing.T, name string) *sqlx.DB {
+    t.Helper()
+
+    // 0. init path
+    storagePath := filepath.Join(".", "..", "..", "storage", "test_{{.Name | ToLower}}", name)
+    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite")
+    conf := &config.Database{
+        StoragePath:       &storagePath,
+        SchemaScriptsPath: &scriptPath,
+    }
+
+    // 1. clean up
+    if osutils.FileOrPathExists(conf.GetStoragePath()) {
+        if err := os.RemoveAll(conf.GetStoragePath()); err != nil {
+            t.Fatalf("failed to cleanup test files: %v", err)
+        }
+    }
+
+    // 2. init database
+    db, err := bootstrap.Database(conf, "0.0.0", false)
+    if err != nil {
+        t.Fatalf("No error expected: %v", err)
+    }
+
+    return db
+}
+
+func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.User) error {
+    {{if .IsIDUUID -}}
+    var err error
+    {{.GetReceiver}}.ID, err = uuid.NewRandom()
+    if err != nil {
+        return fmt.Errorf("failed to generate id: %v", err)
+    }
+
+    {{end -}}
+
+    ctx := context.Background()
+    q := db.Rebind(`{{.GetSQLInsert}}`)
+
+    {{.GetExecInsert}}
+    if err != nil {
+        return err
+    }
+
+    {{if not .IsIDUUID -}}
+    id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+
+    {{.GetReceiver}}.ID = int(id)
+
+    {{end -}}
+
+    q = db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
+
+    return db.GetContext(ctx, {{.GetReceiver}}, q, {{.GetReceiver}}.ID)
+}
+
+func TestMapper_Load(t *testing.T) {
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "mapperLoad")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    mapper := {{.Name | ToLower}}mapper.New(db)
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        expected    *{{.Name | ToLower}}model.{{.Name}}
+        expectedErr error
+    }{
+        { {{$model := .GenerateTestData}}
+            name:     "success",
+            expected: {{template "struct_test_data_without_id" $model}},
+        },
+        {
+            name:        "{{.Name | ToLower}} not existing",
+            expectedErr: {{.Name | ToLower}}mapper.ErrLoadFromDB,
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            if testCase.expected != nil {
+                err := prepareData(db, testCase.expected)
+                if err != nil {
+                    t.Fatalf("failed to prepare data: %v", err)
+                }
+            }
+
+            actual, err := mapper.Load(context.Background(), testCase.expected.ID)
+            if !errors.Is(err, testCase.expectedErr) {
+                t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+            }
+
+            assert{{.Name}}(t, testCase.expected, actual)
+        })
+    }
+}
+
+func TestMapper_Save(t *testing.T) {
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "mapperSave")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    mapper := {{.Name | ToLower}}mapper.New(db)
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        prepare     *{{.Name | ToLower}}model.{{.Name}}
+        actual      *{{.Name | ToLower}}model.{{.Name}}
+        expected    *{{.Name | ToLower}}model.{{.Name}}
+        expectedErr error
+        duplicate bool
+    }{
+        {
+            name:        "model is nil",
+            expectedErr: {{.Name | ToLower}}mapper.ErrNoData,
+        },
+        { {{$modelSaveCreate := .GenerateTestData}}
+            name:     "model has no ID",
+            actual:   {{template "struct_test_data_without_id" $modelSaveCreate}},
+            expected: {{template "struct_test_data_without_id" $modelSaveCreate}},
+        },
+        { {{$modelSaveUpdate := .GenerateTestData}}
+            name:     "model has ID",
+            prepare:   {{template "struct_test_data_without_id" $modelSaveUpdate}},
+            actual:   {{template "struct_test_data_without_id" $modelSaveUpdate}},
+            expected: {{template "struct_test_data_without_id" $modelSaveUpdate}},
+        },
+        { {{$modelSaveMissing := .GenerateTestData}}
+            name:        "update not existing model",
+            actual:      {{template "struct_test_data" $modelSaveMissing}},
+            expectedErr: {{.Name | ToLower}}mapper.ErrSaveToDB,
+        },
+
+        {
+            name:        "model is duplicate",
+            actual:      &{{.Name | ToLower}}model.{{.Name}}{Name: "newname", URL: "newurl"},
+            expectedErr: {{.Name | ToLower}}mapper.ErrSaveToDB,
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            if testCase.prepare != nil {
+                err := prepareData(db, testCase.prepare)
+                if err != nil {
+                    t.Fatalf("failed to prepare data: %v", err)
+                }
+
+                if !testCase.duplicate {
+                    testCase.actual.ID = testCase.prepare.ID
+                }
+            }
+
+            res, err := mapper.Save(context.Background(), testCase.actual)
+            if !errors.Is(err, testCase.expectedErr) {
+                t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+            }
+
+            assert{{.Name}}(t, testCase.expected, res)
+        })
+    }
+}
+
+func TestMapper_Delete(t *testing.T) {
+    if testing.Short() {
+        t.Skip("long running test")
+    }
+
+    // 1. setup
+    db := setup(t, "mapperDelete")
+
+    defer func() {
+        if err := db.Close(); err != nil {
+            t.Fatalf("unable to close database connection: %v", err)
+        }
+    }()
+
+    mapper := {{.Name | ToLower}}mapper.New(db)
+
+    // 2. test
+    testCases := []struct {
+        name        string
+        prepare     *{{.Name | ToLower}}model.{{.Name}}
+        expectedErr error
+    }{
+        { {{$modelDel := .GenerateTestData}}
+            name:    "success",
+            prepare: {{template "struct_test_data_without_id" $modelDel}},
+        },
+        {
+            name:        "{{.Name | ToLower}} not existing",
+            expectedErr: {{.Name | ToLower}}mapper.ErrDeleteFromDB,
+        },
+    }
+
+    for _, testCase := range testCases {
+        t.Run(testCase.name, func(t *testing.T) {
+            if testCase.prepare != nil {
+                err := prepareData(db, testCase.prepare)
+                if err != nil {
+                    t.Fatalf("failed to prepare data: %v", err)
+                }
+            }
+
+            err := mapper.Delete(context.Background(), testCase.prepare.ID)
+            if !errors.Is(err, testCase.expectedErr) {
+                t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+                return
+            }
+
+            if testCase.expectedErr == nil {
+                _, err = mapper.Load(context.Background(), testCase.prepare.ID)
+                if !errors.Is(err, {{.Name | ToLower}}mapper.ErrNotFound) {
+                    t.Errorf("expected that {{.Name | ToLower}} was deleted but got error '%v'", err)
+                }
+            }
+        })
+    }
+}
+
+func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{.Name}}) {
+    t.Helper()
+
+    if expected == nil && actual == nil {
+        return
+    }
+
+    if expected != nil && actual == nil || expected == nil && actual != nil {
+        t.Errorf("expected {{.Name | ToLower}} '%v' but got '%v'", expected, actual)
+        return
+    }
+
+    {{range $elem := .Attributes}}
+    if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+        t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
+    }
+    {{end}}
+
+    if actual.CreatedAt.IsZero() {
+        t.Error("created at should be greater than the zero date")
+    }
+
+    if actual.ModifiedAt.IsZero() {
+        t.Error("created at should be greater than the zero date")
+    }
+}
+{{end}}
+
+{{define "struct_test_data_without_id"}}&{{.Name | ToLower}}model.{{.Name}}{
+    {{- range $i, $elem := .Attributes}}
+        {{- if gt $i 0}}
+        {{$elem.GetTestDataForStruct $elem.TestData}},
+        {{- end}}
+    {{- end}}
+}{{end}}
+
+{{define "struct_test_data"}}&{{.Name | ToLower}}model.{{.Name}}{
+    {{- range $i, $elem := .Attributes}}
+        {{$elem.GetTestDataForStruct $elem.TestData}},
+    {{- end}}
+}{{end}}

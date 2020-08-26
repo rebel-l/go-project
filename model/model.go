@@ -173,8 +173,16 @@ func (m *model) GetIDDefault() string {
 	return "0"
 }
 
-func (m *model) GetIDEmptyComparison() string {
-	return m.Attributes[0].GetEmptyComparison(m.GetReceiver())
+func (m *model) GetIDType() string {
+	return m.Attributes[0].GetGoFieldType()
+}
+
+func (m *model) GetIDEmptyComparison(receiver string) string {
+	if receiver == "" {
+		receiver = m.GetReceiver()
+	}
+
+	return m.Attributes[0].GetEmptyComparison(receiver)
 }
 
 func (m *model) IsIDUUID() bool {

@@ -43,7 +43,7 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
     }
 
     {{if .IsIDUUID -}}
-    if !{{.GetIDEmptyComparison}} {
+    if !{{.GetIDEmptyComparison ""}} {
         return ErrIDIsSet
     }
 
@@ -82,7 +82,7 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
 
 // Read sets the {{.Name | ToLower}} from database by given ID.
 func ({{.GetReceiver}} *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error {
-    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison}} {
+    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison ""}} {
         return ErrIDMissing
     }
 
@@ -97,7 +97,7 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
         return ErrDataMissing
     }
 
-    if {{.GetIDEmptyComparison}} {
+    if {{.GetIDEmptyComparison ""}} {
         return ErrIDMissing
     }
 
@@ -112,7 +112,7 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
 
 // Delete removes the current object from database by its ID.
 func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) error {
-    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison}} {
+    if {{.GetReceiver}} == nil || {{.GetIDEmptyComparison ""}} {
         return ErrIDMissing
     }
 
