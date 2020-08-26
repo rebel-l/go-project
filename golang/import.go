@@ -67,5 +67,10 @@ func GoImports(projectPath string, commit git.CallbackAddAndCommit, step int) er
 		return err
 	}
 
-	return commit(filenames, "adding missing imports and format code", step)
+	if err = ModTidy(projectPath); err != nil {
+		return err
+	}
+
+	return nil
+	return commit(filenames, "adding missing imports and format code", step) // TODO: commit
 }

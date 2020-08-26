@@ -23,3 +23,13 @@ func Get(projectPath string, packageName string) error {
 	cmd.Dir = projectPath
 	return cmd.Run()
 }
+
+func ModTidy(projectPath string) error {
+	cmdTidy := getGoModTidyCommand()
+	cmdTidy.Dir = projectPath
+	if err := cmdTidy.Run(); err != nil {
+		return err
+	}
+
+	return nil
+}
