@@ -12,5 +12,6 @@ require (
 	github.com/pkg/term v0.0.0-20200520122047-c3ffed290a03 // indirect
 	github.com/rebel-l/go-utils v1.2.0-rc.2
 	github.com/tcnksm/go-gitconfig v0.1.2
+	golang.org/x/tools v0.0.0-20200828161849-5deb26317202
 	gopkg.in/src-d/go-git.v4 v4.13.1
 )

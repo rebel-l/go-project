@@ -17,7 +17,3 @@ func getGoGetCommand(packageName string) *exec.Cmd {
 func getGoModTidyCommand() *exec.Cmd {
 	return exec.Command("cmd", "/C", "go", "mod", "tidy")
 }
-
-func getGoImportsCommand(path string) *exec.Cmd {
-	return exec.Command("cmd", "/C", "goimports", "-w", path)
-}

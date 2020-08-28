@@ -1,9 +1,13 @@
 package golang
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/tools/imports"
 
 	"github.com/rebel-l/go-project/git"
 )
@@ -46,19 +50,29 @@ func (i Imports) Get() []string {
 
 // GoImports executes imports missing packages and formats code with goimports command in the given path
 func GoImports(projectPath string, commit git.CallbackAddAndCommit, step int) error {
-	cmd := getGoImportsCommand(projectPath)
-	cmd.Dir = projectPath
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-
 	var filenames []string
 	err := filepath.Walk(projectPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if strings.Contains(info.Name(), ".go") {
+		if strings.Contains(info.Name(), ".go") && !strings.Contains(info.Name(), ".json") {
+			src, err := ioutil.ReadFile(path)
+			if err != nil {
+				return err
+			}
+
+			res, err := imports.Process(path, src, nil)
+			if err != nil {
+				return err
+			}
+
+			if !bytes.Equal(src, res) {
+				if err := ioutil.WriteFile(path, res, 0644); err != nil {
+					return err
+				}
+			}
+
 			filenames = append(filenames, strings.Replace(path, projectPath, "", -1))
 		}
 		return nil
