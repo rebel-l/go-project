@@ -10,7 +10,9 @@ import (
     "errors"
     "fmt"
 
-    "github.com/jmoiron/sqlx"
+    {{- range $elem := .GetImports "mapper"}}
+    "{{$elem}}"
+    {{end -}}
 )
 
 var (

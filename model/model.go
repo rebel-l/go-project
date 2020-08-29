@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/c-bata/go-prompt"
@@ -14,6 +15,13 @@ const (
 	operationCreate = "create"
 	operationUpdate = "update"
 	operationRead   = "read"
+
+	packageTypeStore      = "store"
+	packageTypeStoreTest  = "store_test"
+	packageTypeModel      = "model"
+	packageTypeModelTest  = "model_test"
+	packageTypeMapper     = "mapper"
+	packageTypeMapperTest = "mapper_test"
 )
 
 type model struct {
@@ -22,10 +30,6 @@ type model struct {
 	rootPath   string
 }
 
-//func (m model) createMapperLayer() error {
-//	return nil
-//}
-//
 //func (m model) createCollection() error {
 //	return nil
 //}
@@ -45,6 +49,45 @@ func NewModel(rootPath string) *model {
 		Name:     n,
 		rootPath: rootPath,
 	}
+}
+
+func (m *model) GetImports(packageType string) []string {
+	var packages []string
+
+	importPrefix := m.getLocalImportPrefix()
+
+	switch strings.ToLower(packageType) {
+	case packageTypeMapper:
+		if m.GetIDType() == fieldTypeUUID {
+			packages = append(packages, "github.com/google/uuid", "github.com/rebel-l/go-utils/uuidutils")
+		}
+
+		packages = append(
+			packages,
+			"github.com/jmoiron/sqlx",
+			importPrefix+"model",
+			importPrefix+"store",
+		)
+	case packageTypeMapperTest:
+		// TODO
+	case packageTypeModel:
+		// TODO
+	case packageTypeModelTest:
+		// TODO
+	case packageTypeStore:
+		// TODO
+	case packageTypeStoreTest:
+		// TODO
+	}
+
+	sort.Strings(packages)
+
+	return packages
+}
+
+func (m *model) getLocalImportPrefix() string {
+	name := strings.ToLower(m.Name)
+	return fmt.Sprintf("github.com/rebel-l/auth-service/%s/%s", name, name) // TODO: hardcoded URL needs to be taken from repository remote origin
 }
 
 func (m *model) SetID() {
@@ -161,6 +204,7 @@ func (m *model) GetSQLUpdate() string {
 }
 
 func (m *model) GetPackages() ([]string, error) {
+	// TODO: maybe this is deprecated
 	return m.Attributes.GetPackages(m.rootPath)
 }
 
