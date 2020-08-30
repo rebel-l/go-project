@@ -8,6 +8,7 @@ import (
 
 	"github.com/c-bata/go-prompt"
 
+	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/lib/print"
 )
 
@@ -58,7 +59,7 @@ func (m *model) GetImports(packageType string) []string {
 
 	switch strings.ToLower(packageType) {
 	case packageTypeMapper:
-		if m.GetIDType() == fieldTypeUUID {
+		if m.GetIDType() == "uuid.UUID" {
 			packages = append(packages, "github.com/google/uuid", "github.com/rebel-l/go-utils/uuidutils")
 		}
 
@@ -87,7 +88,13 @@ func (m *model) GetImports(packageType string) []string {
 
 func (m *model) getLocalImportPrefix() string {
 	name := strings.ToLower(m.Name)
-	return fmt.Sprintf("github.com/rebel-l/auth-service/%s/%s", name, name) // TODO: hardcoded URL needs to be taken from repository remote origin
+
+	p, err := git.GetPackage(m.rootPath)
+	if err != nil {
+		return err.Error()
+	}
+
+	return fmt.Sprintf("%s/%s/%s", p, name, name)
 }
 
 func (m *model) SetID() {

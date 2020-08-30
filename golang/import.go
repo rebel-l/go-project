@@ -41,11 +41,11 @@ func (i Imports) GetNames() []string {
 
 // Get returns the list of import commands for go as it is provided by Import.Get()
 func (i Imports) Get() []string {
-	var imports []string
+	var imp []string
 	for _, v := range i {
-		imports = append(imports, v.Get())
+		imp = append(imp, v.Get())
 	}
-	return imports
+	return imp
 }
 
 // GoImports executes imports missing packages and formats code with goimports command in the given path
@@ -62,6 +62,12 @@ func GoImports(projectPath string, commit git.CallbackAddAndCommit, step int) er
 				return err
 			}
 
+			p, err := git.GetPackage(projectPath)
+			if err != nil {
+				return err
+			}
+
+			imports.LocalPrefix = p
 			res, err := imports.Process(path, src, nil)
 			if err != nil {
 				return err
