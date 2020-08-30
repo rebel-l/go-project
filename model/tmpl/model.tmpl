@@ -10,6 +10,10 @@ import (
     "fmt"
     "io"
     "time"
+
+    {{- range $elem := .GetImports "model"}}
+    "{{$elem}}"
+    {{- end}}
 )
 
 var (
@@ -49,6 +53,10 @@ import (
     "io"
     "testing"
     "time"
+
+    {{- range $elem := .GetImports "model_test"}}
+    "{{$elem}}"
+    {{- end}}
 )
 
 func Test{{.Name}}_DecodeJSON(t *testing.T) {

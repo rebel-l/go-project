@@ -9,8 +9,9 @@ import (
     "errors"
     "time"
 
-    "github.com/jmoiron/sqlx"
-    {{range $p := .GetPackages}}"{{$p}}"{{end}}
+    {{- range $elem := .GetImports "store"}}
+    "{{$elem}}"
+    {{- end}}
 )
 
 var (
@@ -144,10 +145,11 @@ import (
     "testing"
     "time"
 
-    "github.com/jmoiron/sqlx"
-    _ "github.com/mattn/go-sqlite3"
+    {{- range $elem := .GetImports "store_test"}}
+    "{{$elem}}"
+    {{- end}}
 
-    "github.com/rebel-l/go-utils/osutils"
+    _ "github.com/mattn/go-sqlite3"
 )
 
 func setup(t *testing.T, name string) *sqlx.DB {

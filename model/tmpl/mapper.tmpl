@@ -127,7 +127,9 @@ import (
     "path/filepath"
     "testing"
 
-    "github.com/jmoiron/sqlx"
+    {{- range $elem := .GetImports "mapper_test"}}
+    "{{$elem}}"
+    {{- end}}
 
     _ "github.com/mattn/go-sqlite3"
 )

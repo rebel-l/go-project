@@ -55,7 +55,14 @@ func NewModel(rootPath string) *model {
 func (m *model) GetImports(packageType string) []string {
 	var packages []string
 
-	importPrefix := m.getLocalImportPrefix()
+	name := strings.ToLower(m.Name)
+
+	p, err := git.GetPackage(m.rootPath)
+	if err != nil {
+		return packages
+	}
+
+	importPrefix := fmt.Sprintf("%s/%s/%s", p, name, name)
 
 	switch strings.ToLower(packageType) {
 	case packageTypeMapper:
@@ -70,31 +77,51 @@ func (m *model) GetImports(packageType string) []string {
 			importPrefix+"store",
 		)
 	case packageTypeMapperTest:
-		// TODO
+		if m.GetIDType() == "uuid.UUID" {
+			packages = append(packages, "github.com/google/uuid")
+		}
+
+		packages = append(
+			packages,
+			"github.com/jmoiron/sqlx",
+			"github.com/rebel-l/go-utils/osutils",
+			"github.com/rebel-l/go-utils/testingutils",
+			importPrefix+"mapper",
+			importPrefix+"model",
+			p+"/bootstrap",
+			p+"/config",
+		)
 	case packageTypeModel:
-		// TODO
+		if m.GetIDType() == "uuid.UUID" {
+			packages = append(packages, "github.com/google/uuid")
+		}
 	case packageTypeModelTest:
-		// TODO
+		packages = append(packages, "github.com/rebel-l/go-utils/testingutils", importPrefix+"model")
 	case packageTypeStore:
-		// TODO
+		if m.GetIDType() == "uuid.UUID" {
+			packages = append(packages, "github.com/google/uuid", "github.com/rebel-l/go-utils/uuidutils")
+		}
+
+		packages = append(packages, "github.com/jmoiron/sqlx")
 	case packageTypeStoreTest:
-		// TODO
+		if m.GetIDType() == "uuid.UUID" {
+			packages = append(packages, "github.com/google/uuid", "github.com/rebel-l/go-utils/uuidutils")
+		}
+
+		packages = append(
+			packages,
+			"github.com/jmoiron/sqlx",
+			"github.com/rebel-l/go-utils/osutils",
+			"github.com/rebel-l/go-utils/testingutils",
+			importPrefix+"store",
+			p+"/bootstrap",
+			p+"/config",
+		)
 	}
 
 	sort.Strings(packages)
 
 	return packages
-}
-
-func (m *model) getLocalImportPrefix() string {
-	name := strings.ToLower(m.Name)
-
-	p, err := git.GetPackage(m.rootPath)
-	if err != nil {
-		return err.Error()
-	}
-
-	return fmt.Sprintf("%s/%s/%s", p, name, name)
 }
 
 func (m *model) SetID() {
