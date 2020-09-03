@@ -118,7 +118,7 @@ func modelToStore(m *{{.Name | ToLower}}model.{{.Name}}) *{{.Name | ToLower}}sto
 }
 {{end}}
 
-{{define "mapper_test.go"}}package {{.Name | ToLower}}mapper_test
+{{define "mapper_test.go"}}package {{.Name | ToLower}}{{$model := .}}mapper_test
 
 import (
     "context"
@@ -290,12 +290,16 @@ func TestMapper_Save(t *testing.T) {
             actual:      {{template "struct_test_data" $modelSaveMissing}},
             expectedErr: {{.Name | ToLower}}mapper.ErrSaveToDB,
         },
-
+        {{- range $elem := .Attributes.GetUniqueFields }}
+        {{- $a := $model.GenerateTestData}}
+        {{- $b := $a.GenerateTestDataForDuplicate $elem}}
         {
-            name:        "model is duplicate",
-            actual:      &{{.Name | ToLower}}model.{{.Name}}{Name: "newname", URL: "newurl"},
-            expectedErr: {{.Name | ToLower}}mapper.ErrSaveToDB,
+            name:        "model is duplicate {{$elem.Name}}",
+            prepare:     {{template "struct_test_data_without_id" $a}},
+            actual:      {{template "struct_test_data_without_id" $b}},
+            expectedErr: {{$model.Name | ToLower}}mapper.ErrSaveToDB,
         },
+        {{end -}}
     }
 
     for _, testCase := range testCases {

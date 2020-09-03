@@ -84,3 +84,25 @@ func (f fields) CountMandatory() int {
 
 	return i
 }
+
+func (f fields) GetUniqueFields() fields {
+	var data fields
+
+	for _, v := range f {
+		if v.Unique {
+			data = append(data, v)
+		}
+	}
+
+	return data
+}
+
+func (f fields) FindField(name string) *field {
+	for _, v := range f {
+		if v.Name == name {
+			return v
+		}
+	}
+
+	return nil
+}

@@ -449,6 +449,46 @@ func (m *model) GenerateTestData() *model {
 	return m
 }
 
+func (m *model) GenerateTestDataForDuplicate(uniqueField *field) *model {
+	b := m.Clone()
+	b.GenerateTestData()
+	for _, v := range b.Attributes {
+		if v.Name == uniqueField.Name {
+			f := m.Attributes.FindField(uniqueField.Name)
+			if f != nil {
+				v.TestData = f.TestData
+			}
+			break
+		}
+	}
+
+	return b
+}
+
+func (m *model) Clone() *model {
+	c := &model{
+		Name:     m.Name,
+		rootPath: m.rootPath,
+	}
+
+	for _, attribute := range m.Attributes {
+		a := &field{
+			Name:         attribute.Name,
+			PrimaryKey:   attribute.PrimaryKey,
+			FieldType:    attribute.FieldType,
+			DefaultValue: attribute.DefaultValue,
+			MaxLength:    attribute.MaxLength,
+			Nullable:     attribute.Nullable,
+			Unique:       attribute.Unique,
+			TestData:     attribute.TestData,
+		}
+
+		c.Attributes = append(c.Attributes, a)
+	}
+
+	return c
+}
+
 type testDataCRUD struct {
 	Name        string
 	Prepare     string
