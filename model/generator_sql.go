@@ -18,7 +18,7 @@ type sql struct {
 
 func (s *sql) Generate(m *model) error {
 	destPath := path.Join(s.rootPath, "scripts", "sql")
-	fileName := fmt.Sprintf("%s_create_%ss.sql", time.Now().Format("20060102"), strings.ToLower(m.Name))
+	fileName := fmt.Sprintf("%s_create_%ss.sql", time.Now().Format("20060102_150405"), strings.ToLower(m.Name))
 
 	tmplName := filepath.Join(".", "model", "tmpl", "sql.tmpl")
 	funcMap := template.FuncMap{
