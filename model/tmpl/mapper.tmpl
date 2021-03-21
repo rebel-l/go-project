@@ -16,33 +16,33 @@ import (
 )
 
 var (
-    // ErrLoadFromDB occurs if something went wrong on loading
+    // ErrLoadFromDB occurs if something went wrong on loading.
     ErrLoadFromDB = errors.New("failed to load {{.Name | ToLower}} from database")
 
-    // ErrNoData occurs if given model is nil
+    // ErrNoData occurs if given model is nil.
     ErrNoData = errors.New("{{.Name | ToLower}} is nil")
 
-    // ErrSaveToDB occurs if something went wrong on saving
+    // ErrSaveToDB occurs if something went wrong on saving.
     ErrSaveToDB = errors.New("failed to save {{.Name | ToLower}} to database")
 
-    // ErrDeleteFromDB occurs if something went wrong on deleting
+    // ErrDeleteFromDB occurs if something went wrong on deleting.
     ErrDeleteFromDB = errors.New("failed to delete {{.Name | ToLower}} from database")
 
-    // ErrNotFound occurs if record doesn't exist in database
+    // ErrNotFound occurs if record doesn't exist in database.
     ErrNotFound = errors.New("{{.Name | ToLower}} was not found")
 )
 
-// Mapper provides methods to load and persist {{.Name | ToLower}} models
+// Mapper provides methods to load and persist {{.Name | ToLower}} models.
 type Mapper struct {
     db *sqlx.DB
 }
 
-// New returns a new mapper
+// New returns a new mapper.
 func New(db *sqlx.DB) *Mapper {
     return &Mapper{db: db}
 }
 
-// Load returns a {{.Name | ToLower}} model loaded from database by ID
+// Load returns a {{.Name | ToLower}} model loaded from database by ID.
 func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
     s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
 
@@ -56,7 +56,7 @@ func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLowe
     return StoreToModel(s), nil
 }
 
-// Save persists (create or update) the model and returns the changed data (id, createdAt or modifiedAt)
+// Save persists (create or update) the model and returns the changed data (id, createdAt or modifiedAt).
 func (m *Mapper) Save(ctx context.Context, model *{{.Name | ToLower}}model.{{.Name}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
     if model == nil {
         return nil, ErrNoData
@@ -79,7 +79,7 @@ func (m *Mapper) Save(ctx context.Context, model *{{.Name | ToLower}}model.{{.Na
     return model, nil
 }
 
-// Delete removes a model from database by ID
+// Delete removes a model from database by ID.
 func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
     s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
     if err := s.Delete(ctx, m.db); err != nil {
@@ -103,6 +103,7 @@ func StoreToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}mod
     }
 }
 
+// StoreToModel returns a model based on the given store object. It maps all properties from store to model.
 func modelToStore(m *{{.Name | ToLower}}model.{{.Name}}) *{{.Name | ToLower}}store.{{.Name}} {
     if m == nil {
         return &{{.Name | ToLower}}store.{{.Name}}{}
