@@ -465,6 +465,13 @@ func (m *model) GenerateTestDataForDuplicate(uniqueField *field) *model {
 	return b
 }
 
+func (m *model) GenerateTestDataForID() string {
+	f := m.Attributes[0]
+	d := f.GetTestDataForStruct(f.GetTestData())
+
+	return strings.Replace(d, fieldNameID, strings.ToLower(fieldNameID), 1)
+}
+
 func (m *model) Clone() *model {
 	c := &model{
 		Name:     m.Name,

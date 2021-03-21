@@ -53,7 +53,7 @@ func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLowe
         return nil, fmt.Errorf("%w: %v", ErrLoadFromDB, err)
     }
 
-    return storeToModel(s), nil
+    return StoreToModel(s), nil
 }
 
 // Save persists (create or update) the model and returns the changed data (id, createdAt or modifiedAt)
@@ -74,7 +74,7 @@ func (m *Mapper) Save(ctx context.Context, model *{{.Name | ToLower}}model.{{.Na
         }
     }
 
-    model = storeToModel(s)
+    model = StoreToModel(s)
 
     return model, nil
 }
@@ -89,7 +89,7 @@ func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
     return nil
 }
 
-func storeToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}model.{{.Name}} {
+func StoreToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}model.{{.Name}} {
     if s == nil {
         return &{{.Name | ToLower}}model.{{.Name}}{}
     }
@@ -161,7 +161,7 @@ func setup(t *testing.T, name string) *sqlx.DB {
     return db
 }
 
-func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.User) error {
+func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name}}) error {
     {{if .IsIDUUID -}}
     var err error
     {{.GetReceiver}}.ID, err = uuid.NewRandom()
@@ -189,9 +189,16 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.User) e
 
     {{end -}}
 
-    q = db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
+    {{.GetReceiver}}s := &{{.Name | ToLower}}store.{{.Name}}{}
 
-    return db.GetContext(ctx, {{.GetReceiver}}, q, {{.GetReceiver}}.ID)
+    q = db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
+    if err := db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID); err != nil {
+        return err
+    }
+
+    {{.GetReceiver}} = {{.Name | ToLower}}mapper.StoreToModel({{.GetReceiver}}s)
+
+    return nil
 }
 
 func TestMapper_Load(t *testing.T) {
@@ -213,29 +220,36 @@ func TestMapper_Load(t *testing.T) {
     // 2. test
     testCases := []struct {
         name        string
+        id          {{$model.GetIDType}}
+        prepare     *{{.Name | ToLower}}model.{{.Name}}
         expected    *{{.Name | ToLower}}model.{{.Name}}
         expectedErr error
     }{
         { {{$model := .GenerateTestData}}
             name:     "success",
+            prepare: {{template "struct_test_data_without_id" $model}},
             expected: {{template "struct_test_data_without_id" $model}},
         },
         {
             name:        "{{.Name | ToLower}} not existing",
-            expectedErr: {{.Name | ToLower}}mapper.ErrLoadFromDB,
+            {{$model.GenerateTestDataForID}},
+            expectedErr: usermapper.ErrNotFound,
         },
     }
 
     for _, testCase := range testCases {
         t.Run(testCase.name, func(t *testing.T) {
-            if testCase.expected != nil {
-                err := prepareData(db, testCase.expected)
+            if testCase.prepare != nil {
+                err := prepareData(db, testCase.prepare)
                 if err != nil {
                     t.Fatalf("failed to prepare data: %v", err)
                 }
+
+                testCase.id = testCase.prepare.ID
+                testCase.expected.ID = testCase.prepare.ID
             }
 
-            actual, err := mapper.Load(context.Background(), testCase.expected.ID)
+            actual, err := mapper.Load(context.Background(), testCase.id)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
             }
