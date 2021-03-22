@@ -359,6 +359,7 @@ func TestMapper_Delete(t *testing.T) {
     // 2. test
     testCases := []struct {
         name        string
+        id          {{$model.GetIDType}}
         prepare     *{{.Name | ToLower}}model.{{.Name}}
         expectedErr error
     }{
@@ -368,7 +369,7 @@ func TestMapper_Delete(t *testing.T) {
         },
         {
             name:        "{{.Name | ToLower}} not existing",
-            expectedErr: {{.Name | ToLower}}mapper.ErrDeleteFromDB,
+            {{$model.GenerateTestDataForID}},
         },
     }
 
@@ -379,16 +380,18 @@ func TestMapper_Delete(t *testing.T) {
                 if err != nil {
                     t.Fatalf("failed to prepare data: %v", err)
                 }
+
+                testCase.id = testCase.prepare.ID
             }
 
-            err := mapper.Delete(context.Background(), testCase.prepare.ID)
+            err := mapper.Delete(context.Background(), testCase.id)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
                 return
             }
 
             if testCase.expectedErr == nil {
-                _, err = mapper.Load(context.Background(), testCase.prepare.ID)
+                _, err = mapper.Load(context.Background(), testCase.id)
                 if !errors.Is(err, {{.Name | ToLower}}mapper.ErrNotFound) {
                     t.Errorf("expected that {{.Name | ToLower}} was deleted but got error '%v'", err)
                 }
