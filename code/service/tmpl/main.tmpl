@@ -95,11 +95,11 @@ func initRoutes() error {
 
 func initDefaultRoutes() error {
     if err := ping.Init(svc); err != nil {
-        return err
+        return fmt.Errorf("failed to init endpoint /ping: %w", err)
     }
 
     if err := doc.Init(svc); err != nil {
-        return err
+        return fmt.Errorf("failed to init endpoint /doc: %w", err)
     }
 
     return nil

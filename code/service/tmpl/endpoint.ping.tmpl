@@ -21,7 +21,7 @@ func Init(svc *smis.Service) error {
     endpoint := &ping{svc: svc}
     _, err := svc.RegisterEndpoint("/ping", http.MethodGet, endpoint.pingHandler)
 
-    return err
+    return err // nolint: wrapcheck
 }
 
 func (p *ping) pingHandler(writer http.ResponseWriter, request *http.Request) {
@@ -41,7 +41,9 @@ func (p *ping) pingHandler(writer http.ResponseWriter, request *http.Request) {
 {{end}}package ping // nolint: testpackage
 
 func TestPingHandler(t *testing.T) {
-    req, err := http.NewRequest("GET", "/ping", nil)
+    t.Parallel()
+
+    req, err := http.NewRequestWithContext(context.Background(), "GET", "/ping", nil)
     if err != nil {
         t.Fatal(err)
     }
@@ -68,6 +70,8 @@ func TestPingHandler(t *testing.T) {
 }
 
 func TestInit(t *testing.T) {
+    t.Parallel()
+
     router := mux.NewRouter()
     srv := &http.Server{
         Handler:      router,
@@ -88,15 +92,15 @@ func TestInit(t *testing.T) {
     err := router.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
         pathTemplate, err := route.GetPathTemplate()
         if err != nil {
-            return err
+            return err // nolint: wrapcheck
         }
 
         if pathTemplate != "/ping" {
             t.Errorf("Expected single endpoint '/ping' but got '%s'", pathTemplate)
         }
+
         return nil
     })
-
     if err != nil {
         t.Fatalf("walk through routes failed: %s", err)
     }
