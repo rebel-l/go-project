@@ -89,6 +89,7 @@ func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
     return nil
 }
 
+// StoreToModel returns a model based on the given store object. It maps all properties from store to model.
 func StoreToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}model.{{.Name}} {
     if s == nil {
         return &{{.Name | ToLower}}model.{{.Name}}{}
@@ -103,12 +104,8 @@ func StoreToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}mod
     }
 }
 
-// StoreToModel returns a model based on the given store object. It maps all properties from store to model.
+// modelToStore returns a store based on the given model object. It maps all properties from model to store.
 func modelToStore(m *{{.Name | ToLower}}model.{{.Name}}) *{{.Name | ToLower}}store.{{.Name}} {
-    if m == nil {
-        return &{{.Name | ToLower}}store.{{.Name}}{}
-    }
-
     return &{{.Name | ToLower}}store.{{.Name}}{
         {{- range $elem := .Attributes}}
         {{$elem.Name}}: m.{{$elem.Name}},
@@ -234,7 +231,7 @@ func TestMapper_Load(t *testing.T) {
         {
             name:        "{{.Name | ToLower}} not existing",
             {{$model.GenerateTestDataForID}},
-            expectedErr: usermapper.ErrNotFound,
+            expectedErr: {{.Name | ToLower}}mapper.ErrNotFound,
         },
     }
 
@@ -310,6 +307,7 @@ func TestMapper_Save(t *testing.T) {
         {{- $b := $a.GenerateTestDataForDuplicate $elem}}
         {
             name:        "model is duplicate {{$elem.Name}}",
+            duplicate:   true,
             prepare:     {{template "struct_test_data_without_id" $a}},
             actual:      {{template "struct_test_data_without_id" $b}},
             expectedErr: {{$model.Name | ToLower}}mapper.ErrSaveToDB,
@@ -333,6 +331,10 @@ func TestMapper_Save(t *testing.T) {
             res, err := mapper.Save(context.Background(), testCase.actual)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+            }
+
+            if res != nil && testCase.expected != nil {
+                testCase.expected.ID = res.ID
             }
 
             assert{{.Name}}(t, testCase.expected, res)
@@ -400,6 +402,32 @@ func TestMapper_Delete(t *testing.T) {
     }
 }
 
+func TestMapper_StoreToModel(t *testing.T) {
+	testCases := []struct {
+		name     string
+		actual   *{{.Name | ToLower}}store.{{.Name}}
+		expected *{{.Name | ToLower}}model.{{.Name}}
+	}{
+		{
+			name:     "store is nil",
+			expected: &{{.Name | ToLower}}model.{{.Name}}{},
+		},
+		{ {{$modelMap := .GenerateTestData}}
+			name: "store has all attributes set",
+			actual: {{template "struct_test_data_store" $modelMap}},
+			expected: {{template "struct_test_data" $modelMap}},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			u := {{.Name | ToLower}}mapper.StoreToModel(testCase.actual)
+
+			assert{{.Name}}(t, testCase.expected, u)
+		})
+	}
+}
+
 func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{.Name}}) {
     t.Helper()
 
@@ -418,11 +446,11 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
     }
     {{end}}
 
-    if actual.CreatedAt.IsZero() {
+    if expected.CreatedAt != actual.CreatedAt && actual.CreatedAt.IsZero() {
         t.Error("created at should be greater than the zero date")
     }
 
-    if actual.ModifiedAt.IsZero() {
+    if expected.ModifiedAt != actual.ModifiedAt && actual.ModifiedAt.IsZero() {
         t.Error("created at should be greater than the zero date")
     }
 }
@@ -437,6 +465,12 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
 }{{end}}
 
 {{define "struct_test_data"}}&{{.Name | ToLower}}model.{{.Name}}{
+    {{- range $i, $elem := .Attributes}}
+        {{$elem.GetTestDataForStruct $elem.TestData}},
+    {{- end}}
+}{{end}}
+
+{{define "struct_test_data_store"}}&{{.Name | ToLower}}store.{{.Name}}{
     {{- range $i, $elem := .Attributes}}
         {{$elem.GetTestDataForStruct $elem.TestData}},
     {{- end}}
