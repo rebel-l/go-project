@@ -15,12 +15,12 @@ type modelGen struct {
 	rootPath string
 }
 
-func (g *modelGen) Generate(m *model) error {
+func (g *modelGen) Generate(m *model) ([]string, error) {
 	name := strings.ToLower(m.Name)
 
 	destPath := path.Join(g.rootPath, name, name+"model")
 	if err := osutils.CreateDirectoryIfNotExists(destPath); err != nil {
-		return err
+		return nil, err
 	}
 
 	tmplFile := filepath.Join("./model/tmpl", "model.tmpl")
@@ -30,33 +30,39 @@ func (g *modelGen) Generate(m *model) error {
 
 	tmpl, err := template.New("model").Funcs(funcMap).ParseFiles(tmplFile)
 	if err != nil {
-		return fmt.Errorf("failed to load templates: %s", err)
+		return nil, fmt.Errorf("failed to load templates: %s", err)
 	}
 
+	var files []string
 	for _, tmplID := range getModelTemplateIdentifiers() {
-		if err := g.model(m, tmpl, destPath, tmplID); err != nil {
-			return err
+		f, err := g.model(m, tmpl, destPath, tmplID)
+		if err != nil {
+			return nil, err
+		}
+
+		if f != "" {
+			files = append(files, f)
 		}
 	}
 
-	return nil
+	return files, nil
 }
 
-func (g *modelGen) model(m *model, tmpl *template.Template, path, tmplID string) error {
+func (g *modelGen) model(m *model, tmpl *template.Template, path, tmplID string) (string, error) {
 	fileName := filepath.Join(path, strings.Replace(tmplID, "model", strings.ToLower(m.Name), -1))
 	file, err := os.Create(fileName)
 	if err != nil {
-		return fmt.Errorf("failed to create model file: %s", err)
+		return "", fmt.Errorf("failed to create model file: %s", err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
 	if err = tmpl.ExecuteTemplate(file, tmplID, m); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return fileName, nil
 }
 
 func getModelTemplateIdentifiers() []string {

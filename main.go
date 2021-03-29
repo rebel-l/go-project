@@ -54,6 +54,7 @@ func main() {
 	fmt.Println()
 
 	if *createModel {
+		_ = git.GetAuthor()
 		if err := model.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
 			print.Error("create model failed", err)
 		}

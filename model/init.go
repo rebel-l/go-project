@@ -24,9 +24,12 @@ func Init(path string, commit git.CallbackAddAndCommit) error {
 
 	fmt.Println()
 
-	if err := g.Generate(m); err != nil {
+	files, err := g.Generate(m)
+	if err != nil {
 		return err
 	}
+
+	fmt.Println(files)
 
 	// TODO: how to get the files?
 	//if err := commit([]string{}, fmt.Sprintf("added model %s", m.Name), 1); err != nil {

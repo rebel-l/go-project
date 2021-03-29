@@ -32,6 +32,10 @@ var remote string
 
 // GetAuthor returns the author entered by user. Is nil as long Setup() not called
 func GetAuthor() *object.Signature {
+	if author == nil {
+		author = askForAuthor()
+	}
+
 	return author
 }
 
@@ -50,7 +54,7 @@ func Setup(projectPath, kind string) {
 		}
 	}
 
-	author = askForAuthor()
+	_ = GetAuthor()
 
 	var remoteOK bool
 	for !remoteOK {

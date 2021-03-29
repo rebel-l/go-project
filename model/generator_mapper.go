@@ -15,12 +15,12 @@ type mapper struct {
 	rootPath string
 }
 
-func (m *mapper) Generate(mo *model) error {
+func (m *mapper) Generate(mo *model) ([]string, error) {
 	name := strings.ToLower(mo.Name)
 
 	destPath := path.Join(m.rootPath, name, name+"mapper")
 	if err := osutils.CreateDirectoryIfNotExists(destPath); err != nil {
-		return err
+		return nil, err
 	}
 
 	tmplFile := filepath.Join("./model/tmpl", "mapper.tmpl")
@@ -30,33 +30,39 @@ func (m *mapper) Generate(mo *model) error {
 
 	tmpl, err := template.New("mapper").Funcs(funcMap).ParseFiles(tmplFile)
 	if err != nil {
-		return fmt.Errorf("failed to load templates: %s", err)
+		return nil, fmt.Errorf("failed to load templates: %s", err)
 	}
 
+	var files []string
 	for _, tmplID := range getMapperTemplateIdentifiers() {
-		if err := m.mapper(mo, tmpl, destPath, tmplID); err != nil {
-			return err
+		f, err := m.mapper(mo, tmpl, destPath, tmplID)
+		if err != nil {
+			return nil, err
+		}
+
+		if f != "" {
+			files = append(files, f)
 		}
 	}
 
-	return nil
+	return files, nil
 }
 
-func (m *mapper) mapper(mo *model, tmpl *template.Template, path, tmplID string) error {
+func (m *mapper) mapper(mo *model, tmpl *template.Template, path, tmplID string) (string, error) {
 	fileName := filepath.Join(path, strings.Replace(tmplID, "mapper", strings.ToLower(mo.Name), -1))
 	file, err := os.Create(fileName)
 	if err != nil {
-		return fmt.Errorf("failed to create mapper file: %s", err)
+		return "", fmt.Errorf("failed to create mapper file: %s", err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
 	if err = tmpl.ExecuteTemplate(file, tmplID, mo); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return fileName, nil
 }
 
 func getMapperTemplateIdentifiers() []string {

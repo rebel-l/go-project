@@ -14,45 +14,51 @@ type bootstrap struct {
 	rootPath string
 }
 
-func (b *bootstrap) Generate(m *model) error {
+func (b *bootstrap) Generate(m *model) ([]string, error) {
 	bootstrapPath := path.Join(b.rootPath, "bootstrap")
 	if osutils.FileOrPathExists(bootstrapPath) {
-		return nil
+		return nil, nil
 	}
 
 	if err := osutils.CreateDirectoryIfNotExists(bootstrapPath); err != nil {
-		return err
+		return nil, err
 	}
 
 	tmplFile := filepath.Join("./model/tmpl", "bootstrap.tmpl")
 
 	tmpl, err := template.New("bootstrap").ParseFiles(tmplFile)
 	if err != nil {
-		return fmt.Errorf("failed to load templates: %s", err)
+		return nil, fmt.Errorf("failed to load templates: %s", err)
 	}
 
+	var files []string
 	for _, tmplID := range getDatabaseTemplateIdentifiers() {
-		if err := b.bootstrap(tmpl, m, bootstrapPath, tmplID); err != nil {
-			return err
+		f, err := b.bootstrap(tmpl, m, bootstrapPath, tmplID)
+		if err != nil {
+			return nil, err
+		}
+
+		if f != "" {
+			files = append(files, f)
 		}
 	}
 
-	return nil
+	return files, nil
 }
 
-func (b *bootstrap) bootstrap(tmpl *template.Template, m *model, path, tmplID string) error {
+func (b *bootstrap) bootstrap(tmpl *template.Template, m *model, path, tmplID string) (string, error) {
 	fileName := filepath.Join(path, tmplID)
 	file, err := os.Create(fileName)
 	if err != nil {
-		return fmt.Errorf("failed to create bootstrap file: %s", err)
+		return "", fmt.Errorf("failed to create bootstrap file: %s", err)
 	}
 	defer func() {
 		_ = file.Close()
 	}()
 
 	if err = tmpl.ExecuteTemplate(file, tmplID, m); err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return fileName, nil
 }
