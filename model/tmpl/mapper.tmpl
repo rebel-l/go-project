@@ -164,7 +164,7 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name
     var err error
     {{.GetReceiver}}.ID, err = uuid.NewRandom()
     if err != nil {
-        return fmt.Errorf("failed to generate id: %v", err)
+        return fmt.Errorf("failed to generate id: %w", err)
     }
 
     {{end -}}
@@ -190,16 +190,13 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name
     {{.GetReceiver}}s := &{{.Name | ToLower}}store.{{.Name}}{}
 
     q = db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
-    if err := db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID); err != nil {
-        return err
-    }
 
-    {{.GetReceiver}} = {{.Name | ToLower}}mapper.StoreToModel({{.GetReceiver}}s)
-
-    return nil
+    return db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID)
 }
 
 func TestMapper_Load(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -207,11 +204,11 @@ func TestMapper_Load(t *testing.T) {
     // 1. setup
     db := setup(t, "mapperLoad")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     mapper := {{.Name | ToLower}}mapper.New(db)
 
@@ -236,7 +233,10 @@ func TestMapper_Load(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             if testCase.prepare != nil {
                 err := prepareData(db, testCase.prepare)
                 if err != nil {
@@ -258,6 +258,8 @@ func TestMapper_Load(t *testing.T) {
 }
 
 func TestMapper_Save(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -265,11 +267,11 @@ func TestMapper_Save(t *testing.T) {
     // 1. setup
     db := setup(t, "mapperSave")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     mapper := {{.Name | ToLower}}mapper.New(db)
 
@@ -316,7 +318,10 @@ func TestMapper_Save(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             if testCase.prepare != nil {
                 err := prepareData(db, testCase.prepare)
                 if err != nil {
@@ -343,6 +348,8 @@ func TestMapper_Save(t *testing.T) {
 }
 
 func TestMapper_Delete(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -350,11 +357,11 @@ func TestMapper_Delete(t *testing.T) {
     // 1. setup
     db := setup(t, "mapperDelete")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     mapper := {{.Name | ToLower}}mapper.New(db)
 
@@ -376,7 +383,10 @@ func TestMapper_Delete(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             if testCase.prepare != nil {
                 err := prepareData(db, testCase.prepare)
                 if err != nil {
@@ -389,6 +399,7 @@ func TestMapper_Delete(t *testing.T) {
             err := mapper.Delete(context.Background(), testCase.id)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+
                 return
             }
 
@@ -403,6 +414,8 @@ func TestMapper_Delete(t *testing.T) {
 }
 
 func TestMapper_StoreToModel(t *testing.T) {
+    t.Parallel()
+
 	testCases := []struct {
 		name     string
 		actual   *{{.Name | ToLower}}store.{{.Name}}
@@ -420,7 +433,10 @@ func TestMapper_StoreToModel(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
+	    testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
+		    t.Parallel()
+
 			u := {{.Name | ToLower}}mapper.StoreToModel(testCase.actual)
 
 			assert{{.Name}}(t, testCase.expected, u)
@@ -437,6 +453,7 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
 
     if expected != nil && actual == nil || expected == nil && actual != nil {
         t.Errorf("expected {{.Name | ToLower}} '%v' but got '%v'", expected, actual)
+
         return
     }
 

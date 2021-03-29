@@ -17,11 +17,11 @@ const (
     storageFileName = "{{.GetProjectName}}.db"
 )
 
-// Database initialises the database and returns the connection
+// Database initialises the database and returns the connection.
 func Database(conf *config.Database, version string, withBar bool) (*sqlx.DB, error) {
     fileName, err := createStorage(conf.GetStoragePath())
     if err != nil {
-        return nil, fmt.Errorf("bootstrap database, create storage failed: %v", err)
+        return nil, fmt.Errorf("bootstrap database, create storage failed: %w", err)
     }
 
     db, err := open(fileName)
@@ -66,6 +66,7 @@ func createSchema(db *sqlx.DB, scriptPath, version string, withBar bool) error {
 
 func open(fileName string) (*sqlx.DB, error) {
     db, err := sqlx.Open("sqlite3", fileName)
+
     return db, err
 }
 
@@ -119,6 +120,8 @@ func setup(t *testing.T, name string) *config.Database {
 
     // 1. config
     storagePath := filepath.Join(".", "..", "storage", name)
+
+    // nolint: godox
     scriptPath := filepath.Join(".", "..", "scripts", "sql", "sqlite") // TODO: change that it works with other dialects like postgres
     conf := &config.Database{
         StoragePath:       &storagePath,
@@ -136,10 +139,13 @@ func setup(t *testing.T, name string) *config.Database {
 }
 
 func TestDatabase(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
 
+    // nolint: godox
     fixtures := slice.StringSlice{  // TODO: where to get this list of tables from?
         "schema_script",
         "sqlite_sequence",
@@ -176,6 +182,8 @@ func TestDatabase(t *testing.T) {
 }
 
 func TestDatabaseReset(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }

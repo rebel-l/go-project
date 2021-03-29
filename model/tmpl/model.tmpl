@@ -16,12 +16,10 @@ import (
     {{- end}}
 )
 
-var (
-    // ErrDecodeJSON occurs if the a string is not in JSON format
-    ErrDecodeJSON = errors.New("failed to decode JSON")
-)
+// ErrDecodeJSON occurs if the a string is not in JSON format.
+var ErrDecodeJSON = errors.New("failed to decode JSON")
 
-// {{.Name}} represents a model of repository including business logic
+// {{.Name}} represents a model of repository including business logic.
 type {{.Name}} struct {
     {{- range $elem := $elems}}
     {{$elem.GetModelField}}
@@ -30,7 +28,7 @@ type {{.Name}} struct {
     ModifiedAt time.Time `json:"ModifiedAt"`
 }
 
-// DecodeJSON converts JSON data to struct
+// DecodeJSON converts JSON data to struct.
 func (r *{{.Name}}) DecodeJSON(reader io.Reader) error {
     if r == nil {
         return nil
@@ -60,6 +58,8 @@ import (
 )
 
 func Test{{.Name}}_DecodeJSON(t *testing.T) {
+    t.Parallel()
+
     createdAt, _ := time.Parse(time.RFC3339Nano, "2019-12-31T03:36:57.9167778+01:00")
     modifiedAt, _ := time.Parse(time.RFC3339Nano, "2020-01-01T15:44:57.9168378+01:00")
 
@@ -97,10 +97,14 @@ func Test{{.Name}}_DecodeJSON(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             err := testCase.actual.DecodeJSON(testCase.json)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
+
                 return
             }
 
@@ -118,10 +122,11 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
 
     if expected != nil && actual == nil || expected == nil && actual != nil {
         t.Errorf("expected '%v' but got '%v'", expected, actual)
+
         return
     }
 
-    {{- range $elem := .Attributes}}
+    {{range $elem := .Attributes -}}
     if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }

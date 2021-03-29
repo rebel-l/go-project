@@ -49,7 +49,7 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
     }
 
     var err error
-    {{.GetReceiver}}.ID, err = uuid.NewRandom() // TODO: maybe create a hash based on struct data
+    {{.GetReceiver}}.ID, err = uuid.NewRandom() // nolint: godox TODO: maybe create a hash based on struct data
     if err != nil {
         return fmt.Errorf("%w: %v", ErrCreatingID, err)
     }
@@ -74,7 +74,7 @@ func ({{.GetReceiver}} *{{.Name}}) Create(ctx context.Context, db *sqlx.DB) erro
         return err
     }
 
-    {{.GetReceiver}}.ID = int(id) // TODO: use int64 to avoid type conversion
+    {{.GetReceiver}}.ID = int(id) // nolint: godox TODO: use int64 to avoid type conversion
 
     {{end -}}
 
@@ -157,7 +157,7 @@ func setup(t *testing.T, name string) *sqlx.DB {
 
     // 0. init path
     storagePath := filepath.Join(".", "..", "..", "storage", "test_{{.Name | ToLower}}", name)
-    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite") // TODO: change that it works with other dialects like postgres
+    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite") // nolint: godox TODO: change that it works with other dialects like postgres
     conf := &config.Database{
         StoragePath:       &storagePath,
         SchemaScriptsPath: &scriptPath,
@@ -179,7 +179,9 @@ func setup(t *testing.T, name string) *sqlx.DB {
     return db
 }
 
-func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
+func Test{{.Name}}_Create(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -187,11 +189,11 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
     // 1. setup
     db := setup(t, "storeCreate")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     // 2. test
     testCases := []struct {
@@ -219,7 +221,10 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             err := testCase.actual.Create(context.Background(), db)
             testingutils.ErrorsCheck(t, testCase.expectedErr, err)
 
@@ -232,6 +237,8 @@ func Test{{.Name}}_Create(t *testing.T) { // nolint:funlen
 }
 
 func Test{{.Name}}_Read(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -239,11 +246,11 @@ func Test{{.Name}}_Read(t *testing.T) {
     // 1. setup
     db := setup(t, "storeRead")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     // 2. test
     testCases := []struct {
@@ -275,13 +282,17 @@ func Test{{.Name}}_Read(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             var id {{if .IsIDUUID}}uuid.UUID{{else}}int{{end}}
             if testCase.prepare != nil {
                 if testCase.prepare.IsValid() {
                     err := testCase.prepare.Create(context.Background(), db)
                     if err != nil {
                         t.Errorf("preparation failed: %v", err)
+
                         return
                     }
                 }
@@ -309,10 +320,11 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{
 
     if expected != nil && actual == nil || expected == nil && actual != nil {
         t.Errorf("expected '%v' but got '%v'", expected, actual)
+
         return
     }
 
-    {{- range $elem := .Attributes}}
+    {{range $elem := .Attributes -}}
     if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }
@@ -327,7 +339,9 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{
     }
 }
 
-func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
+func Test{{.Name}}_Update(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -335,11 +349,11 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
     // 1. setup
     db := setup(t, "storeUpdate")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     // 2. test
     testCases := []struct {
@@ -371,7 +385,10 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             if testCase.prepare != nil {
                 _ = testCase.prepare.Create(context.Background(), db)
                 time.Sleep(1 * time.Second)
@@ -408,6 +425,8 @@ func Test{{.Name}}_Update(t *testing.T) { // nolint:funlen
 }
 
 func Test{{.Name}}_Delete(t *testing.T) {
+    t.Parallel()
+
     if testing.Short() {
         t.Skip("long running test")
     }
@@ -415,11 +434,11 @@ func Test{{.Name}}_Delete(t *testing.T) {
     // 1. setup
     db := setup(t, "storeDelete")
 
-    defer func() {
+    t.Cleanup(func() {
         if err := db.Close(); err != nil {
             t.Fatalf("unable to close database connection: %v", err)
         }
-    }()
+    })
 
     // 2. test
     testCases := []struct {
@@ -447,13 +466,17 @@ func Test{{.Name}}_Delete(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             var id {{if .IsIDUUID}}uuid.UUID{{else}}int{{end}}
             if testCase.prepare != nil {
                 if testCase.prepare.IsValid() {
                     err := testCase.prepare.Create(context.Background(), db)
                     if err != nil {
                         t.Errorf("preparation failed: %v", err)
+
                         return
                     }
                 }
@@ -475,6 +498,8 @@ func Test{{.Name}}_Delete(t *testing.T) {
 }
 
 func Test{{.Name}}_IsValid(t *testing.T) {
+    t.Parallel()
+
     testCases := []struct {
         name     string
         actual   *{{.Name | ToLower}}store.{{.Name}}
@@ -494,7 +519,10 @@ func Test{{.Name}}_IsValid(t *testing.T) {
     }
 
     for _, testCase := range testCases {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             res := testCase.actual.IsValid()
             if testCase.expected != res {
                 t.Errorf("expected %t but got %t", testCase.expected, res)

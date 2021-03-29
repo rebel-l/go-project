@@ -5,20 +5,20 @@ package config
 {{define "database.go"}}package config
 
 const (
-    // DefaultPathToDatabase defines the path to the sqlite storage file
+    // DefaultPathToDatabase defines the path to the sqlite storage file.
     DefaultPathToDatabase = "./storage"
 
-    // DefaultPathToSchemaScripts defines the path to the scripts managing the database structure
-    DefaultPathToSchemaScripts = "./scripts/sql/sqlite" // TODO: change that it works with other dialects like postgres
+    // DefaultPathToSchemaScripts defines the path to the scripts managing the database structure.
+    DefaultPathToSchemaScripts = "./scripts/sql/sqlite" // nolint: godox TODO: change that it works with other dialects like postgres
 )
 
-// Database provides the configuration for the database
+// Database provides the configuration for the database.
 type Database struct {
     StoragePath       *string `json:"storage_path"`
     SchemaScriptsPath *string `json:"schema_scripts_path"`
 }
 
-// GetStoragePath returns the path to the storage file
+// GetStoragePath returns the path to the storage file.
 func (d *Database) GetStoragePath() string {
     if d == nil || d.StoragePath == nil {
         return DefaultPathToDatabase
@@ -27,7 +27,7 @@ func (d *Database) GetStoragePath() string {
     return *d.StoragePath
 }
 
-// GetSchemaScriptPath returns the path to the schema script files managing the database structure
+// GetSchemaScriptPath returns the path to the schema script files managing the database structure.
 func (d *Database) GetSchemaScriptPath() string {
     if d == nil || d.SchemaScriptsPath == nil {
         return DefaultPathToSchemaScripts
@@ -36,7 +36,7 @@ func (d *Database) GetSchemaScriptPath() string {
     return *d.SchemaScriptsPath
 }
 
-// Merge overwrites the values given by the config from parameter if they differ from default values
+// Merge overwrites the values given by the config from parameter if they differ from default values.
 func (d *Database) Merge(cfg *Database) {
     if cfg == nil || d == nil {
         return
@@ -63,6 +63,8 @@ import (
 )
 
 func TestDatabase_GetStoragePath(t *testing.T) {
+    t.Parallel()
+
     var db *config.Database
     if db.GetStoragePath() != config.DefaultPathToDatabase {
         t.Errorf(
@@ -74,6 +76,8 @@ func TestDatabase_GetStoragePath(t *testing.T) {
 }
 
 func TestDatabase_GetSchemaScriptPath(t *testing.T) {
+    t.Parallel()
+
     var db *config.Database
     if db.GetSchemaScriptPath() != config.DefaultPathToSchemaScripts {
         t.Errorf(
@@ -91,7 +95,7 @@ type tcDatabaseMerge struct {
     expected  *config.Database
 }
 
-func getTestCasesDatabaseMerge(t *testing.T) []tcDatabaseMerge { // nolint:dupl,funlen
+func getTestCasesDatabaseMerge(t *testing.T) []tcDatabaseMerge {
     t.Helper()
 
     var testCases []tcDatabaseMerge
@@ -163,8 +167,13 @@ func getTestCasesDatabaseMerge(t *testing.T) []tcDatabaseMerge { // nolint:dupl,
 }
 
 func TestDatabase_Merge(t *testing.T) {
+    t.Parallel()
+
     for _, testCase := range getTestCasesDatabaseMerge(t) {
+        testCase := testCase
         t.Run(testCase.name, func(t *testing.T) {
+            t.Parallel()
+
             testCase.actual.Merge(testCase.mergeWith)
             testDatabase(t, testCase.expected, testCase.actual)
         })
