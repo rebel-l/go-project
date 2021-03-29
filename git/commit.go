@@ -33,3 +33,5 @@ func AddFilesAndCommit(files []string, msg string, step int) error {
 	)
 	return err
 }
+
+func CommitBlackHole(_ []string, _ string, _ int) error { return nil }

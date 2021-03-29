@@ -29,12 +29,9 @@ func Init(path string, commit git.CallbackAddAndCommit) error {
 		return err
 	}
 
-	fmt.Println(files)
-
-	// TODO: how to get the files?
-	//if err := commit([]string{}, fmt.Sprintf("added model %s", m.Name), 1); err != nil {
-	//	return err
-	//}
+	if err := commit(files, fmt.Sprintf("added model %s", m.Name), 1); err != nil {
+		return err
+	}
 
 	return golang.GoImports(path, commit, 2)
 }

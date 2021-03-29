@@ -55,7 +55,13 @@ func main() {
 
 	if *createModel {
 		_ = git.GetAuthor()
-		if err := model.Init(destination.Get(), git.AddFilesAndCommit); err != nil {
+
+		c := git.CommitBlackHole
+		if !*pushToRemote {
+			c = git.AddFilesAndCommit
+		}
+
+		if err := model.Init(destination.Get(), c); err != nil {
 			print.Error("create model failed", err)
 		}
 		return
