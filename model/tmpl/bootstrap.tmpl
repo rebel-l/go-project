@@ -39,6 +39,10 @@ func Database(conf *config.Database, version string, withBar bool) (*sqlx.DB, er
         return nil, fmt.Errorf("bootstrap database, activate foreign key checks failed: %w", err)
     }
 
+    if err := db.Ping(); err != nil {
+        return nil, fmt.Errorf("bootstrap database, failed to reach database: %w", err)
+    }
+
     return db, nil
 }
 
