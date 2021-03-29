@@ -289,6 +289,10 @@ func NewFieldID() *field {
 	return f
 }
 
+func (f *field) resetTestData() {
+	f.TestData = ""
+}
+
 func (f *field) setName() {
 	n := prompt.Input("enter the name of the field > ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}

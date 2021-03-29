@@ -218,12 +218,12 @@ func Test{{.Name}}_Create(t *testing.T) {
         {{- range $testData := .GetTestDataCU "create"}}
         {
             name:        "{{$testData.Name}}",
-            actual:      {{$testData.Actual}},
-            {{- if ne .Expected ""}}
-            expected: {{.Expected}},
+            actual:      {{template "struct_test_data" $testData.Actual}},
+            {{- if $testData.Expected}}
+            expected: {{template "struct_test_data" $testData.Expected}},
             {{- end}}
-            {{- if ne .ExpectedErr ""}}
-            expectedErr: {{.ExpectedErr}},
+            {{- if ne $testData.ExpectedErr ""}}
+            expectedErr: {{$testData.ExpectedErr}},
             {{- end}}
         },
         {{- end}}
@@ -279,12 +279,12 @@ func Test{{.Name}}_Read(t *testing.T) {
         {{- range $testData := .GetTestDataRD "read"}}
         {
             name:        "{{$testData.Name}}",
-            prepare:      {{$testData.Prepare}},
-            {{- if ne .Expected ""}}
-            expected: {{.Expected}},
+            prepare:      {{template "struct_test_data" $testData.Prepare}},
+            {{- if $testData.Expected}}
+            expected: {{template "struct_test_data" $testData.Expected}},
             {{- end}}
-            {{- if ne .ExpectedErr ""}}
-            expectedErr: {{.ExpectedErr}},
+            {{- if ne $testData.ExpectedErr ""}}
+            expectedErr: {{$testData.ExpectedErr}},
             {{- end}}
         },
         {{- end}}
@@ -379,15 +379,15 @@ func Test{{.Name}}_Update(t *testing.T) {
         {{- range $testData := .GetTestDataCU "update"}}
         {
             name:        "{{$testData.Name}}",
-            actual:      {{$testData.Actual}},
-            {{- if ne .Prepare ""}}
-                prepare: {{.Prepare}},
+            actual:      {{template "struct_test_data" $testData.Actual}},
+            {{- if $testData.Prepare}}
+                prepare: {{template "struct_test_data" $testData.Prepare}},
             {{- end}}
-            {{- if ne .Expected ""}}
-                expected: {{.Expected}},
+            {{- if $testData.Expected}}
+                expected: {{template "struct_test_data" $testData.Expected}},
             {{- end}}
-            {{- if ne .ExpectedErr ""}}
-                expectedErr: {{.ExpectedErr}},
+            {{- if ne $testData.ExpectedErr ""}}
+                expectedErr: {{$testData.ExpectedErr}},
             {{- end}}
         },
         {{- end}}
@@ -466,9 +466,9 @@ func Test{{.Name}}_Delete(t *testing.T) {
         {{- range $testData := .GetTestDataRD "delete"}}
         {
             name: "{{$testData.Name}}",
-            prepare: {{$testData.Prepare}},
-            {{- if ne .ExpectedErr ""}}
-            expectedErr: {{.ExpectedErr}},
+            prepare: {{template "struct_test_data" $testData.Prepare}},
+            {{- if ne $testData.ExpectedErr ""}}
+            expectedErr: {{$testData.ExpectedErr}},
             {{- end}}
         },
         {{- end}}
@@ -521,7 +521,7 @@ func Test{{.Name}}_IsValid(t *testing.T) {
         {{- range $testData := .GetTestIsValid}}
         {
             name:     "{{$testData.Name}}",
-            actual:   {{$testData.Actual}},
+            actual:   {{template "struct_test_data" $testData.Actual}},
             expected: {{$testData.Expected}},
         },
         {{- end}}
@@ -540,3 +540,9 @@ func Test{{.Name}}_IsValid(t *testing.T) {
     }
 }
 {{end}}
+
+{{define "struct_test_data"}}&{{.Name | ToLower}}store.{{.Name}}{
+    {{- range $i, $elem := .Attributes}}{{if ne $elem.TestData ""}}
+        {{$elem.GetTestDataForStruct $elem.TestData}},
+    {{- end}}{{- end}}
+}{{end}}

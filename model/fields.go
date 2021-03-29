@@ -106,3 +106,9 @@ func (f fields) FindField(name string) *field {
 
 	return nil
 }
+
+func (f fields) ResetTestData() {
+	for _, v := range f {
+		v.resetTestData()
+	}
+}
