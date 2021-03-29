@@ -84,7 +84,11 @@ func (f *field) GetSQLField() string { // TODO: support sql dialect ... maybe wi
 		fieldTypeEmail,
 		fieldTypeFirstName,
 		fieldTypeLastName:
-		line += fmt.Sprintf(" VARCHAR(%d)", f.MaxLength)
+		if f.MaxLength == 0 {
+			line += " TEXT"
+		} else {
+			line += fmt.Sprintf(" VARCHAR(%d)", f.MaxLength)
+		}
 	case fieldTypeBool,
 		fieldTypeInt:
 		line += " INTEGER"
@@ -373,9 +377,13 @@ func (f *field) setMaxLength() {
 		return
 	}
 
-	l := prompt.Input("enter the maximum length of the fields value > ", func(d prompt.Document) []prompt.Suggest {
+	l := prompt.Input("enter the maximum length of the fields value (leave empty for unlimited) > ", func(d prompt.Document) []prompt.Suggest {
 		return []prompt.Suggest{}
 	}, prompt.OptionInputTextColor(prompt.Yellow))
+
+	if l == "" {
+		return
+	}
 
 	var err error
 	f.MaxLength, err = strconv.Atoi(l)
