@@ -126,8 +126,7 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
         return
     }
 
-
-    {{- range $elem := .Attributes}}
+    {{range $elem := .Attributes}}
     if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }

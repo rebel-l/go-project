@@ -163,7 +163,10 @@ func setup(t *testing.T, name string) *sqlx.DB {
 
     // 0. init path
     storagePath := filepath.Join(".", "..", "..", "storage", "test_{{.Name | ToLower}}", name)
-    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite") // nolint: godox TODO: change that it works with other dialects like postgres
+
+    // nolint: godox
+    // TODO: change that it works with other dialects like postgres
+    scriptPath := filepath.Join(".", "..", "..", "scripts", "sql", "sqlite")
     conf := &config.Database{
         StoragePath:       &storagePath,
         SchemaScriptsPath: &scriptPath,
@@ -330,8 +333,7 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{
         return
     }
 
-
-    {{- range $elem := .Attributes}}
+    {{range $elem := .Attributes}}
     if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }

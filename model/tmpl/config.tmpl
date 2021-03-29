@@ -9,7 +9,8 @@ const (
     DefaultPathToDatabase = "./storage"
 
     // DefaultPathToSchemaScripts defines the path to the scripts managing the database structure.
-    DefaultPathToSchemaScripts = "./scripts/sql/sqlite" // nolint: godox TODO: change that it works with other dialects like postgres
+    // nolint: godox
+    DefaultPathToSchemaScripts = "./scripts/sql/sqlite" // TODO: change that it works with other dialects like postgres
 )
 
 // Database provides the configuration for the database.

@@ -193,7 +193,7 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name
 
 
     if err := db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID); err != nil {
-        return nil, fmt.Errorf("failed to retrieve created data", err)
+        return nil, fmt.Errorf("failed to retrieve created data: %w", err)
     }
 
     return {{.Name | ToLower}}mapper.StoreToModel({{.GetReceiver}}s), nil
