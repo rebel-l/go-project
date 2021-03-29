@@ -44,12 +44,12 @@ func Database(conf *config.Database, version string, withBar bool) (*sqlx.DB, er
 
 func createStorage(path string) (string, error) {
     if err := osutils.CreateDirectoryIfNotExists(path); err != nil {
-        return "", err
+        return "", err // nolint: wrapcheck
     }
 
     fileName := buildFileName(path)
     if err := osutils.CreateFileIfNotExists(fileName); err != nil {
-        return "", err
+        return "", err // nolint: wrapcheck
     }
 
     return fileName, nil
@@ -61,13 +61,13 @@ func createSchema(db *sqlx.DB, scriptPath, version string, withBar bool) error {
         s.WithProgressBar()
     }
 
-    return s.Upgrade(scriptPath, version)
+    return s.Upgrade(scriptPath, version) // nolint: wrapcheck
 }
 
 func open(fileName string) (*sqlx.DB, error) {
     db, err := sqlx.Open("sqlite3", fileName)
 
-    return db, err
+    return db, err // nolint: wrapcheck
 }
 
 func buildFileName(path string) string {

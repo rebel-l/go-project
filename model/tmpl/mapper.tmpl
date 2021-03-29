@@ -46,8 +46,7 @@ func New(db *sqlx.DB) *Mapper {
 func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
     s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
 
-    err := s.Read(ctx, m.db)
-    if errors.Is(err, sql.ErrNoRows) {
+    if err := s.Read(ctx, m.db); errors.Is(err, sql.ErrNoRows) {
         return nil, ErrNotFound
     } else if err != nil {
         return nil, fmt.Errorf("%w: %v", ErrLoadFromDB, err)
@@ -159,12 +158,13 @@ func setup(t *testing.T, name string) *sqlx.DB {
     return db
 }
 
-func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name}}) error {
+func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
     {{if .IsIDUUID -}}
     var err error
+
     {{.GetReceiver}}.ID, err = uuid.NewRandom()
     if err != nil {
-        return fmt.Errorf("failed to generate id: %w", err)
+        return nil, fmt.Errorf("failed to generate id: %w", err)
     }
 
     {{end -}}
@@ -174,13 +174,13 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name
 
     {{.GetExecInsert}}
     if err != nil {
-        return err
+        return nil, fmt.Errorf("failed to create data: %w", err)
     }
 
     {{if not .IsIDUUID -}}
     id, err := res.LastInsertId()
     if err != nil {
-        return err
+        return nil, fmt.Errorf("failed to retrieve ID: %w", err)
     }
 
     {{.GetReceiver}}.ID = int(id)
@@ -191,7 +191,12 @@ func prepareData(db *sqlx.DB, {{.GetReceiver}} *{{.Name | ToLower}}model.{{.Name
 
     q = db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
 
-    return db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID)
+
+    if err := db.GetContext(ctx, {{.GetReceiver}}s, q, {{.GetReceiver}}.ID); err != nil {
+        return nil, fmt.Errorf("failed to retrieve created data", err)
+    }
+
+    return {{.Name | ToLower}}mapper.StoreToModel({{.GetReceiver}}s), nil
 }
 
 func TestMapper_Load(t *testing.T) {
@@ -237,8 +242,10 @@ func TestMapper_Load(t *testing.T) {
         t.Run(testCase.name, func(t *testing.T) {
             t.Parallel()
 
+            var err error
+
             if testCase.prepare != nil {
-                err := prepareData(db, testCase.prepare)
+                testCase.prepare, err = prepareData(db, testCase.prepare)
                 if err != nil {
                     t.Fatalf("failed to prepare data: %v", err)
                 }
@@ -322,8 +329,10 @@ func TestMapper_Save(t *testing.T) {
         t.Run(testCase.name, func(t *testing.T) {
             t.Parallel()
 
+            var err error
+
             if testCase.prepare != nil {
-                err := prepareData(db, testCase.prepare)
+                testCase.prepare, err = prepareData(db, testCase.prepare)
                 if err != nil {
                     t.Fatalf("failed to prepare data: %v", err)
                 }
@@ -387,8 +396,10 @@ func TestMapper_Delete(t *testing.T) {
         t.Run(testCase.name, func(t *testing.T) {
             t.Parallel()
 
+            var err error
+
             if testCase.prepare != nil {
-                err := prepareData(db, testCase.prepare)
+                testCase.prepare, err = prepareData(db, testCase.prepare)
                 if err != nil {
                     t.Fatalf("failed to prepare data: %v", err)
                 }
@@ -396,7 +407,7 @@ func TestMapper_Delete(t *testing.T) {
                 testCase.id = testCase.prepare.ID
             }
 
-            err := mapper.Delete(context.Background(), testCase.id)
+            err = mapper.Delete(context.Background(), testCase.id)
             if !errors.Is(err, testCase.expectedErr) {
                 t.Errorf("expected error '%v' but got '%v'", testCase.expectedErr, err)
 
