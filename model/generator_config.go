@@ -14,7 +14,7 @@ type config struct {
 	rootPath string
 }
 
-func (d *config) Generate(_ *model) error {
+func (d *config) Generate(m *model) error {
 	configPath := path.Join(d.rootPath, "config")
 	if osutils.FileOrPathExists(configPath) {
 		return nil
@@ -32,7 +32,7 @@ func (d *config) Generate(_ *model) error {
 	}
 
 	for _, tmplID := range getDatabaseTemplateIdentifiers() {
-		if err := d.config(tmpl, configPath, tmplID); err != nil {
+		if err := d.config(tmpl, m, configPath, tmplID); err != nil {
 			return err
 		}
 	}
@@ -40,7 +40,7 @@ func (d *config) Generate(_ *model) error {
 	return nil
 }
 
-func (d *config) config(tmpl *template.Template, path, tmplID string) error {
+func (d *config) config(tmpl *template.Template, m *model, path, tmplID string) error {
 	fileName := filepath.Join(path, tmplID)
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -50,7 +50,7 @@ func (d *config) config(tmpl *template.Template, path, tmplID string) error {
 		_ = file.Close()
 	}()
 
-	if err = tmpl.ExecuteTemplate(file, tmplID, nil); err != nil {
+	if err = tmpl.ExecuteTemplate(file, tmplID, m); err != nil {
 		return err
 	}
 

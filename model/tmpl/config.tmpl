@@ -56,6 +56,10 @@ func (d *Database) Merge(cfg *Database) {
 
 import (
     "testing"
+
+    {{- range $elem := .GetImports "config_test"}}
+        "{{$elem}}"
+    {{- end}}
 )
 
 func TestDatabase_GetStoragePath(t *testing.T) {

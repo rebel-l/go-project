@@ -17,6 +17,9 @@ const (
 	operationUpdate = "update"
 	operationRead   = "read"
 
+	packageBootstrap      = "bootstrap"
+	packageBootstrapTest  = "bootstrap_test"
+	packageConfigTest     = "config_test"
 	packageTypeStore      = "store"
 	packageTypeStoreTest  = "store_test"
 	packageTypeModel      = "model"
@@ -65,6 +68,27 @@ func (m *model) GetImports(packageType string) []string {
 	importPrefix := fmt.Sprintf("%s/%s/%s", p, name, name)
 
 	switch strings.ToLower(packageType) {
+	case packageBootstrap:
+		packages = append(
+			packages,
+			"github.com/jmoiron/sqlx",
+			p+"/config",
+			"github.com/rebel-l/go-utils/osutils",
+			"github.com/rebel-l/schema",
+		)
+	case packageBootstrapTest:
+		packages = append(
+			packages,
+			p+"/bootstrap",
+			p+"/config",
+			"github.com/rebel-l/go-utils/osutils",
+			"github.com/rebel-l/go-utils/slice",
+		)
+	case packageConfigTest:
+		packages = append(
+			packages,
+			p+"/config",
+		)
 	case packageTypeMapper:
 		if m.GetIDType() == "uuid.UUID" {
 			packages = append(packages, "github.com/google/uuid", "github.com/rebel-l/go-utils/uuidutils")

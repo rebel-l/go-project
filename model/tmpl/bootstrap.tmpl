@@ -8,13 +8,9 @@ import (
     "fmt"
     "path/filepath"
 
-    // "github.com/rebel-l/branma_be/config" // TODO: goimports is doing the job?
-
-    "github.com/rebel-l/schema"
-
-    "github.com/jmoiron/sqlx"
-
-    "github.com/rebel-l/go-utils/osutils"
+    {{- range $elem := .GetImports "bootstrap"}}
+        "{{$elem}}"
+    {{- end}}
 )
 
 const (
@@ -113,8 +109,9 @@ import (
 
     _ "github.com/mattn/go-sqlite3"
 
-    "github.com/rebel-l/go-utils/slice"
-    "github.com/rebel-l/go-utils/osutils"
+    {{- range $elem := .GetImports "bootstrap_test"}}
+        "{{$elem}}"
+    {{- end}}
 )
 
 func setup(t *testing.T, name string) *config.Database {
