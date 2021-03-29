@@ -122,7 +122,8 @@ func setup(t *testing.T, name string) *config.Database {
     storagePath := filepath.Join(".", "..", "storage", name)
 
     // nolint: godox
-    scriptPath := filepath.Join(".", "..", "scripts", "sql", "sqlite") // TODO: change that it works with other dialects like postgres
+    // TODO: change that it works with other dialects like postgres
+    scriptPath := filepath.Join(".", "..", "scripts", "sql", "sqlite")
     conf := &config.Database{
         StoragePath:       &storagePath,
         SchemaScriptsPath: &scriptPath,
