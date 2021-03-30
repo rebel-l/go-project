@@ -56,6 +56,8 @@ func main() {
 	if *createModel {
 		_ = git.GetAuthor()
 
+		fmt.Println()
+
 		c := git.CommitBlackHole
 		if !*pushToRemote {
 			c = git.AddFilesAndCommit

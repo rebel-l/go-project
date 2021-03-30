@@ -7,7 +7,8 @@ import (
 )
 
 func GetPackage(path string) (string, error) {
-	repo, err := git.PlainOpen(path)
+	var err error
+	repo, err = git.PlainOpen(path) // it's important that the global variable "repo" is used
 	if err != nil {
 		return "", err
 	}

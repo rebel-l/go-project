@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/rebel-l/go-project/git"
 	"github.com/rebel-l/go-project/golang"
@@ -27,6 +28,11 @@ func Init(path string, commit git.CallbackAddAndCommit) error {
 	files, err := g.Generate(m)
 	if err != nil {
 		return err
+	}
+
+	// clean paths from files as they are added from commit function
+	for i, v := range files {
+		files[i] = strings.Replace(v, path, "", 1)
 	}
 
 	if err := commit(files, fmt.Sprintf("added model %s", m.Name), 1); err != nil {

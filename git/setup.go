@@ -131,11 +131,8 @@ func open(path string) bool {
 
 	var err error
 	repo, err = git.PlainOpen(path)
-	if err != nil {
-		return false
-	}
 
-	return true
+	return err == nil
 }
 
 func createRepo(path string) error {
