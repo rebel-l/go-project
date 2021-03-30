@@ -22,15 +22,47 @@ func GetPackage(path string) (string, error) {
 		if r.Config() != nil {
 			for _, u := range r.Config().URLs {
 				if len(u) > 0 {
-					return strings.Replace(
-						strings.Replace(u, ".git", "", -1),
-						"https://",
-						"",
-						-1), nil
+					return getReplacers().get(u), nil
 				}
 			}
 		}
 	}
 
 	return "", nil
+}
+
+type replacer struct {
+	old string
+	new string
+}
+
+type replacers []replacer
+
+func (r replacers) get(s string) string {
+	for _, v := range r {
+		s = strings.Replace(s, v.old, v.new, -1)
+	}
+
+	return s
+}
+
+func getReplacers() replacers {
+	return replacers{
+		{
+			old: ".git",
+			new: "",
+		},
+		{
+			old: "https://",
+			new: "",
+		},
+		{
+			old: "git@",
+			new: "",
+		},
+		{
+			old: ":",
+			new: "/",
+		},
+	}
 }

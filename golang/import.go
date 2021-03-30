@@ -91,6 +91,5 @@ func GoImports(projectPath string, commit git.CallbackAddAndCommit, step int) er
 		return err
 	}
 
-	return nil
-	return commit(filenames, "adding missing imports and format code", step) // TODO: commit
+	return commit(filenames, "adding missing imports and format code", step)
 }
