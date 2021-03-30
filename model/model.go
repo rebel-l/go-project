@@ -223,7 +223,10 @@ func (m *model) GetSQLInsert() string {
 	}
 
 	return fmt.Sprintf(
-		"INSERT INTO %s (%s) VALUES (%s);",
+		`
+		INSERT INTO %s (%s) 
+		VALUES (%s);
+	`,
 		m.GetSQlTableName(),
 		fieldNames,
 		strings.Join(placeHolders, ", "),
@@ -255,7 +258,11 @@ func (m *model) GetSQLUpdate() string {
 	}
 
 	return fmt.Sprintf(
-		"UPDATE %s SET %s WHERE id = ?",
+		`
+		UPDATE %s 
+		SET %s 
+		WHERE id = ?;
+	`,
 		m.GetSQlTableName(),
 		strings.Join(fieldNames, ", "),
 	)

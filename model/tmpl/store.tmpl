@@ -88,7 +88,11 @@ func ({{.GetReceiver}} *{{.Name}}) Read(ctx context.Context, db *sqlx.DB) error 
         return ErrIDMissing
     }
 
-    q := db.Rebind(`SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at FROM {{.GetSQlTableName}} WHERE id = ?`)
+    q := db.Rebind(`
+        SELECT {{.Attributes.GetSQLFieldNames}}, created_at, modified_at
+        FROM {{.GetSQlTableName}}
+        WHERE id = ?;
+    `)
     if err := db.GetContext(ctx, {{.GetReceiver}}, q, {{.GetReceiver}}.ID); err != nil {
         return fmt.Errorf("failed to read: %w", err)
     }
@@ -108,7 +112,8 @@ func ({{.GetReceiver}} *{{.Name}}) Update(ctx context.Context, db *sqlx.DB) erro
 
     q := db.Rebind(`{{.GetSQLUpdate}}`)
 
-    if _, err := db.ExecContext(ctx, q, {{.GetStructFieldsWithIDLast}}); err != nil {
+    _, err := db.ExecContext(ctx, q, {{.GetStructFieldsWithIDLast}})
+    if err != nil {
         return fmt.Errorf("failed to update: %w", err)
     }
 
@@ -121,7 +126,10 @@ func ({{.GetReceiver}} *{{.Name}}) Delete(ctx context.Context, db *sqlx.DB) erro
         return ErrIDMissing
     }
 
-    q := db.Rebind(`DELETE FROM {{.GetSQlTableName}} WHERE id = ?`)
+    q := db.Rebind(`
+        DELETE FROM {{.GetSQlTableName}}
+        WHERE id = ?
+    `)
 
     if _, err := db.ExecContext(ctx, q, {{.GetReceiver}}.ID); err != nil {
         return fmt.Errorf("failed to delete: %w", err)
