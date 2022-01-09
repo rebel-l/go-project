@@ -44,7 +44,7 @@ func New(db *sqlx.DB) *Mapper {
 
 // Load returns a {{.Name | ToLower}} model loaded from database by ID.
 func (m *Mapper) Load(ctx context.Context, id {{.GetIDType}}) (*{{.Name | ToLower}}model.{{.Name}}, error) {
-    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
+    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id} // nolint: exhaustivestruct
 
     if err := s.Read(ctx, m.db); errors.Is(err, sql.ErrNoRows) {
         return nil, ErrNotFound
@@ -80,7 +80,7 @@ func (m *Mapper) Save(ctx context.Context, model *{{.Name | ToLower}}model.{{.Na
 
 // Delete removes a model from database by ID.
 func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
-    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id}
+    s := &{{.Name | ToLower}}store.{{.Name}}{ID: id} // nolint: exhaustivestruct
     if err := s.Delete(ctx, m.db); err != nil {
         return fmt.Errorf("%w: %v", ErrDeleteFromDB, err)
     }
@@ -91,7 +91,7 @@ func (m *Mapper) Delete(ctx context.Context, id {{.GetIDType}}) error {
 // StoreToModel returns a model based on the given store object. It maps all properties from store to model.
 func StoreToModel(s *{{.Name | ToLower}}store.{{.Name}}) *{{.Name | ToLower}}model.{{.Name}} {
     if s == nil {
-        return &{{.Name | ToLower}}model.{{.Name}}{}
+        return &{{.Name | ToLower}}model.{{.Name}}{} // nolint: exhaustivestruct
     }
 
     return &{{.Name | ToLower}}model.{{.Name}}{
@@ -469,9 +469,12 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}model.{{
     }
 
     {{range $elem := .Attributes}}
-    if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+    {{if eq $elem.FieldType "time"}}if !expected.{{$elem.Name}}.Equal(actual.{{$elem.Name}}) {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }
+    {{else}}if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+        t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
+    }{{end}}
     {{end}}
 
     if expected.CreatedAt != actual.CreatedAt && actual.CreatedAt.IsZero() {

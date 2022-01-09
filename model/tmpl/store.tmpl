@@ -342,9 +342,12 @@ func assert{{.Name}}(t *testing.T, expected, actual *{{.Name | ToLower}}store.{{
     }
 
     {{range $elem := .Attributes}}
-    if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+    {{if eq $elem.FieldType "time"}}if !expected.{{$elem.Name}}.Equal(actual.{{$elem.Name}}) {
         t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
     }
+    {{else}}if expected.{{$elem.Name}} != actual.{{$elem.Name}} {
+        t.Errorf("expected {{$elem.Name}} {{$elem.GetFormat}} but got {{$elem.GetFormat}}", expected.{{$elem.Name}}, actual.{{$elem.Name}})
+    }{{end}}
     {{end}}
 
     if actual.CreatedAt.IsZero() {

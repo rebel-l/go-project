@@ -55,6 +55,8 @@ func (f *field) GetGoFieldType() string {
 		fieldTypeLastName,
 		fieldTypeEmail:
 		ft = "string"
+	case fieldTypeTime:
+		ft = "time.Time"
 	default:
 		ft = f.FieldType
 	}
@@ -171,7 +173,8 @@ func (f *field) GetFormat() string {
 		fieldTypeString,
 		fieldTypeEmail,
 		fieldTypeFirstName,
-		fieldTypeLastName:
+		fieldTypeLastName,
+		fieldTypeTime:
 		value = "%s"
 	case fieldTypeBool:
 		value = "%t"
@@ -199,7 +202,7 @@ func (f *field) GetTestDataForStruct(value string) string {
 		fieldTypeBool:
 		data += value
 	case fieldTypeTime:
-		data += fmt.Sprintf("time.Parse(\"\\\"%s\\\"\", %s)", time.RFC3339Nano, value)
+		data += fmt.Sprintf("testingutils.TimeParse(\"%s\", %s)", time.RFC3339Nano, value)
 	}
 
 	return data

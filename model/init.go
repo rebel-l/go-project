@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	packageGoUtils = "github.com/rebel-l/go-utils@v1.2.0-rc.3" // TODO: remove version number
+	packageGoUtils = "github.com/rebel-l/go-utils@v1.2.0-rc.7" // TODO: remove version number
 )
 
 func Init(path string, commit git.CallbackAddAndCommit) error {
